@@ -1,0 +1,16 @@
+data_source: local
+data_dir: ./data
+file_format: csv
+tickers:
+  - 000001.SZ
+  - 000002.SZ
+  - 600000.SH
+start_date: 2020-01-01
+end_date: 2025-01-01
+columns:
+  - date
+  - open
+  - high
+  - low
+  - close
+  - volume
