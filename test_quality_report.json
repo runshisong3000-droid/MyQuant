@@ -1,0 +1,161 @@
+{
+  "symbol": "TEST.SZ",
+  "data_source": "test_source",
+  "report_time": "2026-05-07T13:27:23.385255",
+  "basic_info": {
+    "total_rows": 1461,
+    "total_columns": 5,
+    "date_range": {
+      "start": "2020-01-01 00:00:00",
+      "end": "2023-12-31 00:00:00",
+      "trading_days": 1461
+    },
+    "columns": [
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ]
+  },
+  "missing_values": {
+    "overall_missing_rate": 0.0,
+    "by_column": {
+      "open": {
+        "missing_count": 0,
+        "missing_rate": 0.0,
+        "missing_periods": []
+      },
+      "high": {
+        "missing_count": 0,
+        "missing_rate": 0.0,
+        "missing_periods": []
+      },
+      "low": {
+        "missing_count": 0,
+        "missing_rate": 0.0,
+        "missing_periods": []
+      },
+      "close": {
+        "missing_count": 0,
+        "missing_rate": 0.0,
+        "missing_periods": []
+      },
+      "volume": {
+        "missing_count": 0,
+        "missing_rate": 0.0,
+        "missing_periods": []
+      }
+    },
+    "has_missing": false
+  },
+  "anomalies": {
+    "price_anomalies": [
+      {
+        "date": "2023-12-24 00:00:00",
+        "price": 1157.9198701958023,
+        "z_score": 3.1284542323853146
+      },
+      {
+        "date": "2023-12-25 00:00:00",
+        "price": 1172.1740871752809,
+        "z_score": 3.1819343833135583
+      },
+      {
+        "date": "2023-12-26 00:00:00",
+        "price": 1132.0678516635423,
+        "z_score": 3.031460489768974
+      },
+      {
+        "date": "2023-12-27 00:00:00",
+        "price": 1150.2565961266566,
+        "z_score": 3.0997025265278526
+      },
+      {
+        "date": "2023-12-28 00:00:00",
+        "price": 1160.1754516503913,
+        "z_score": 3.13691690955629
+      },
+      {
+        "date": "2023-12-29 00:00:00",
+        "price": 1191.2624167817476,
+        "z_score": 3.2535515580620262
+      },
+      {
+        "date": "2023-12-30 00:00:00",
+        "price": 1208.4923920674544,
+        "z_score": 3.3181964052743362
+      },
+      {
+        "date": "2023-12-31 00:00:00",
+        "price": 1206.3544243939098,
+        "z_score": 3.310175001220681
+      }
+    ],
+    "volume_anomalies": [],
+    "extreme_changes": []
+  },
+  "suspended_days": {
+    "count": 0,
+    "dates": [],
+    "suspension_rate": 0.0
+  },
+  "statistics": {
+    "open": {
+      "mean": 322.41839346915106,
+      "std": 265.2264712576413,
+      "min": 82.37270501238207,
+      "max": 1211.1369648230855,
+      "median": 165.37341655423685,
+      "skewness": 1.0901291774052257,
+      "kurtosis": -0.09551731192674406
+    },
+    "high": {
+      "mean": 327.2197322301532,
+      "std": 269.0640283662451,
+      "min": 83.0111886831011,
+      "max": 1221.6419362884,
+      "median": 167.1236100515801,
+      "skewness": 1.089536757611947,
+      "kurtosis": -0.0944356477653745
+    },
+    "low": {
+      "mean": 320.93593701511605,
+      "std": 264.0373836067558,
+      "min": 81.0718650462946,
+      "max": 1207.102047967829,
+      "median": 164.22482363440471,
+      "skewness": 1.09137095450636,
+      "kurtosis": -0.08475374523801626
+    },
+    "close": {
+      "mean": 324.0840513960134,
+      "std": 266.53284876858316,
+      "min": 82.17958997086465,
+      "max": 1208.4923920674544,
+      "median": 165.8781786233638,
+      "skewness": 1.0894275792734958,
+      "kurtosis": -0.09523861801040079
+    },
+    "volume": {
+      "mean": 5462500.912388775,
+      "std": 2606842.9792828667,
+      "min": 1012938.0,
+      "max": 9983278.0,
+      "median": 5395102.0,
+      "skewness": 0.04447651990506062,
+      "kurtosis": -1.22671485726689
+    },
+    "returns": {
+      "mean": 0.0018942787774484972,
+      "std": 0.01976042548764587,
+      "sharpe": 1.5217659848740221,
+      "best": 0.07805462981309441,
+      "worst": -0.0638253468013813
+    }
+  },
+  "data_quality_score": 100.0,
+  "recommendations": [
+    "Data quality is good. No major issues detected."
+  ]
+}

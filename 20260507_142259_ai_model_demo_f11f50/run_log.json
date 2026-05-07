@@ -1,0 +1,18 @@
+{"timestamp": "2026-05-07T14:22:59.604", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T14:22:59.610", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "MyQuant AI Model Layer Demo"}
+{"timestamp": "2026-05-07T14:22:59.614", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T14:22:59.618", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Testing Neural Network Models..."}
+{"timestamp": "2026-05-07T14:22:59.704", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training LSTM..."}
+{"timestamp": "2026-05-07T14:23:32.843", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "LSTM trained successfully. Final loss: 0.1013"}
+{"timestamp": "2026-05-07T14:23:32.848", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "LSTM prediction: 0.9936"}
+{"timestamp": "2026-05-07T14:23:32.850", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training GRU..."}
+{"timestamp": "2026-05-07T14:24:08.842", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "GRU trained successfully. Final loss: 0.1128"}
+{"timestamp": "2026-05-07T14:24:08.861", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "GRU prediction: 0.9830"}
+{"timestamp": "2026-05-07T14:24:08.864", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training AttentionLSTM..."}
+{"timestamp": "2026-05-07T14:24:35.471", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "AttentionLSTM trained successfully. Final loss: 0.3296"}
+{"timestamp": "2026-05-07T14:24:35.484", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "AttentionLSTM prediction: 0.4261"}
+{"timestamp": "2026-05-07T14:24:35.490", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training Transformer..."}
+{"timestamp": "2026-05-07T14:25:27.670", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Transformer trained successfully. Final loss: 0.0699"}
+{"timestamp": "2026-05-07T14:25:27.679", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Transformer prediction: 0.9987"}
+{"timestamp": "2026-05-07T14:25:27.685", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training TimeSeriesTransformer..."}
+{"timestamp": "2026-05-07T14:25:27.701", "level": "ERROR", "module": "ai_model_demo", "run_id": null, "message": "Demo failed with error: 'TimeSeriesTransformer' object has no attribute 'train_model'", "extra": {"exception": {"type": "bool", "message": "True", "traceback": "Traceback (most recent call last):\n  File \"D:\\Rens\\MyQuant\\scripts\\ai_model_demo.py\", line 143, in main\n    test_nn_models()\n  File \"D:\\Rens\\MyQuant\\scripts\\ai_model_demo.py\", line 71, in test_nn_models\n    history = model.train_model(loader, epochs=30, lr=0.001)\n              ^^^^^^^^^^^^^^^^^\n  File \"D:\\Rens\\MyQuant\\py14venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1968, in __getattr__\n    raise AttributeError(\nAttributeError: 'TimeSeriesTransformer' object has no attribute 'train_model'\n"}}}

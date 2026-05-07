@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.tox/
+.coverage
+htmlcov/
+
+# Virtual environments
+env/
+venv/
+.env
+.venv/
+py14venv/
+*.venv/
+
+# Data directories
+data/
+results/
+*.csv
+
+# Logs
+*.log
+logs/
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Build artifacts
+build/
+dist/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.swp
+*.bak

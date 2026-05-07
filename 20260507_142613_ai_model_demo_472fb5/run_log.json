@@ -1,0 +1,33 @@
+{"timestamp": "2026-05-07T14:26:13.319", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T14:26:13.320", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "MyQuant AI Model Layer Demo"}
+{"timestamp": "2026-05-07T14:26:13.322", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T14:26:13.322", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Testing Neural Network Models..."}
+{"timestamp": "2026-05-07T14:26:13.343", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training LSTM..."}
+{"timestamp": "2026-05-07T14:26:27.657", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "LSTM trained successfully. Final loss: 0.0816"}
+{"timestamp": "2026-05-07T14:26:27.667", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "LSTM prediction: 0.9949"}
+{"timestamp": "2026-05-07T14:26:27.671", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training GRU..."}
+{"timestamp": "2026-05-07T14:27:04.707", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "GRU trained successfully. Final loss: 0.0892"}
+{"timestamp": "2026-05-07T14:27:04.725", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "GRU prediction: 0.9924"}
+{"timestamp": "2026-05-07T14:27:04.728", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training AttentionLSTM..."}
+{"timestamp": "2026-05-07T14:27:28.801", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "AttentionLSTM trained successfully. Final loss: 0.1369"}
+{"timestamp": "2026-05-07T14:27:28.811", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "AttentionLSTM prediction: 0.9674"}
+{"timestamp": "2026-05-07T14:27:28.814", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Training Transformer..."}
+{"timestamp": "2026-05-07T14:28:17.028", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Transformer trained successfully. Final loss: 0.1286"}
+{"timestamp": "2026-05-07T14:28:17.037", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Transformer prediction: 0.9973"}
+{"timestamp": "2026-05-07T14:28:17.041", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "\nTesting Ensemble Models..."}
+{"timestamp": "2026-05-07T14:28:17.048", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Creating voting ensemble..."}
+{"timestamp": "2026-05-07T14:28:20.432", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "voting ensemble accuracy: 1.0000"}
+{"timestamp": "2026-05-07T14:28:20.434", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Creating stacking ensemble..."}
+{"timestamp": "2026-05-07T14:28:26.140", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "stacking ensemble accuracy: 1.0000"}
+{"timestamp": "2026-05-07T14:28:26.143", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Creating blending ensemble..."}
+{"timestamp": "2026-05-07T14:28:27.918", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "blending ensemble accuracy: 1.0000"}
+{"timestamp": "2026-05-07T14:28:27.921", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Creating weighted ensemble..."}
+{"timestamp": "2026-05-07T14:28:29.011", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "weighted ensemble accuracy: 1.0000"}
+{"timestamp": "2026-05-07T14:28:29.015", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "\nTesting Trainer Framework..."}
+{"timestamp": "2026-05-07T14:28:29.884", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Cross Validation Results:"}
+{"timestamp": "2026-05-07T14:28:29.886", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "  accuracy: 0.9225 (+/- 0.0255)"}
+{"timestamp": "2026-05-07T14:28:29.890", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "  f1: 0.9224 (+/- 0.0255)"}
+{"timestamp": "2026-05-07T14:28:30.129", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "Test Set Results: {'accuracy': 0.93, 'precision': 0.9323376623376624, 'recall': 0.93, 'f1': 0.9303222506393862, 'roc_auc': 0.992972302604382}"}
+{"timestamp": "2026-05-07T14:28:30.133", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T14:28:30.136", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "AI Model Layer Demo Complete!"}
+{"timestamp": "2026-05-07T14:28:30.139", "level": "INFO", "module": "ai_model_demo", "run_id": null, "message": "============================================================"}

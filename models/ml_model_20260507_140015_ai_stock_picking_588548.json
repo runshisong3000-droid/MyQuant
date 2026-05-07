@@ -1,0 +1,23 @@
+{
+  "run_id": "20260507_140015_ai_stock_picking_588548",
+  "model_type": "xgboost",
+  "parameters": {
+    "model_type": "xgboost",
+    "lookback_days": 60,
+    "forecast_days": 20,
+    "top_n": 3
+  },
+  "features_count": 38,
+  "stocks": [
+    "000001.SZ",
+    "000002.SZ",
+    "000333.SZ",
+    "000858.SZ",
+    "600000.SH"
+  ],
+  "selected_stocks": [
+    "000001.SZ",
+    "000002.SZ",
+    "000333.SZ"
+  ]
+}

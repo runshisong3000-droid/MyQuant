@@ -1,0 +1,30 @@
+mode: event_driven
+timezone: Asia/Shanghai
+
+event_driven:
+  price_precision: 2
+  volume_precision: 0
+  enable_slippage: true
+  enable_transaction_cost: true
+  enable_position_sizing: true
+
+vectorized:
+  batch_size: 1000
+  parallel: true
+  num_workers: 4
+
+report:
+  include_plots: true
+  include_stats: true
+  include_trades: true
+  html_output: true
+  pdf_output: false
+
+performance:
+  benchmark: 000001.SH
+  risk_free_rate: 0.02
+
+portfolio:
+  rebalance_frequency: daily
+  max_stocks: 10
+  min_stocks: 3

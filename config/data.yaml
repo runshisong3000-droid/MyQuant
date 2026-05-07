@@ -1,0 +1,25 @@
+data_source: akshare
+
+akshare:
+  use_cache: true
+
+local_cache: ./data
+cache_expire_days: 7
+
+universe:
+  main:
+    - 000001.SZ
+    - 000002.SZ
+    - 600000.SH
+    - 600519.SH
+
+start_date: 2020-01-01
+end_date: 2025-01-01
+
+columns:
+  - date
+  - open
+  - high
+  - low
+  - close
+  - volume

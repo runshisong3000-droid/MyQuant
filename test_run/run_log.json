@@ -1,0 +1,6 @@
+{"timestamp": "2026-05-07T13:05:06.072", "level": "INFO", "module": "test_logger", "run_id": "test_logger_001", "message": "This is an info log"}
+{"timestamp": "2026-05-07T13:05:06.073", "level": "WARNING", "module": "test_logger", "run_id": "test_logger_001", "message": "This is a warning log"}
+{"timestamp": "2026-05-07T13:05:06.073", "level": "ERROR", "module": "test_logger", "run_id": "test_logger_001", "message": "This is an error log", "extra": {"exception": {"type": "Exception", "message": "Test exception", "traceback": "NoneType: None\n"}}}
+{"timestamp": "2026-05-07T13:05:06.075", "level": "METRIC", "module": "test_logger", "run_id": "test_logger_001", "message": "Metric: accuracy = 0.95", "extra": {"metric_name": "accuracy", "metric_value": 0.95}}
+{"timestamp": "2026-05-07T13:05:06.075", "level": "METRIC", "module": "test_logger", "run_id": "test_logger_001", "message": "Metric: precision = 0.92", "extra": {"metric_name": "precision", "metric_value": 0.92}}
+{"timestamp": "2026-05-07T13:05:06.076", "level": "ARTIFACT", "module": "test_logger", "run_id": "test_logger_001", "message": "Artifact: model.pkl (file)", "extra": {"artifact_name": "model.pkl", "artifact_path": "/models/model.pkl", "artifact_type": "file"}}
