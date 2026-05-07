@@ -4,7 +4,8 @@
 ![GitHub forks](https://img.shields.io/github/forks/RensSong/MyQuant.svg)
 ![GitHub license](https://img.shields.io/github/license/RensSong/MyQuant.svg)
 
-A commercial-grade AI-powered quantitative trading and research platform built for systematic investment strategies.
+An AI-powered quantitative trading and research platform for systematic investment strategies, currently being developed by an undergraduate student.
+
 
 ## 📋 About the Author
 
@@ -12,7 +13,7 @@ A commercial-grade AI-powered quantitative trading and research platform built f
 - Undergraduate Student, Shanghai University  
 - Shanghai, China  
 - Focus: Quantitative Finance, Machine Learning, AI Trading Systems  
-- LinkedIn: [Rens Song](https://linkedin.com/in/renssong)
+- LinkedIn: [Runshi Song](https://linkedin.com/in/renssong)
 
 ---
 
@@ -149,8 +150,8 @@ This project is for educational and research purposes only. Not investment advic
 
 ## 📧 Contact
 
-- Email: rens.song@outlook.com
-- GitHub: [@RensSong](https://github.com/RensSong)
+- Email: songrunshi@outlook.com
+- GitHub: [@RunshiSong3000-droid](https://github.com/RensSong)
 - Location: Shanghai, China
 
 ---
