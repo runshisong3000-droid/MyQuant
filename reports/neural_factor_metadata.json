@@ -1,0 +1,49 @@
+{
+  "model_type": "SequenceAutoEncoder",
+  "lookback_window": 20,
+  "raw_features": [
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume"
+  ],
+  "embedding_dim": 8,
+  "train_start_date": "2026-02-03 00:00:00",
+  "train_end_date": "2026-03-27 00:00:00",
+  "validation_start_date": "2026-03-30 00:00:00",
+  "validation_end_date": "2026-04-14 00:00:00",
+  "test_start_date": "2026-04-15 00:00:00",
+  "test_end_date": "2026-04-30 00:00:00",
+  "horizon": 1,
+  "training_mode": "self_supervised",
+  "device": "cpu",
+  "leakage_check_result": {
+    "feature_columns": {
+      "status": "OK",
+      "check": "feature_columns",
+      "issues": [],
+      "message": "All feature columns are safe"
+    },
+    "sequence_dates": {
+      "status": "OK",
+      "check": "sequence_dates",
+      "issues": [],
+      "message": "All sequences properly aligned"
+    },
+    "target_alignment": {
+      "status": "OK",
+      "check": "target_alignment",
+      "issues": [],
+      "message": "Target properly aligned after signal_date"
+    },
+    "scaler_fit_scope": {
+      "status": "OK",
+      "check": "scaler_fit_scope",
+      "issues": [],
+      "message": "Time periods properly separated"
+    },
+    "overall_status": "OK"
+  },
+  "generated_at": "2026-05-07T23:25:29.713623"
+}

@@ -29,6 +29,22 @@ from .trainer import (
     FeatureSelector,
     Pipeline
 )
+from .ranking_model import (
+    CrossSectionalRankingLoss,
+    RankingNet,
+    CrossSectionalDataLoader,
+    RankingModel,
+    EnsembleRankingModel,
+    CrossSectionalTrainer
+)
+from .research_agent import (
+    ResearchHypothesis,
+    MarketHypothesisGenerator,
+    FactorFormulaGenerator,
+    ResearchReportGenerator,
+    ResearchAgent,
+    AutoResearchPipeline
+)
 
 __all__ = [
     "MLStockPickingStrategy",
@@ -53,5 +69,17 @@ __all__ = [
     "HyperparameterTuner",
     "ModelEvaluator",
     "FeatureSelector",
-    "Pipeline"
+    "Pipeline",
+    "CrossSectionalRankingLoss",
+    "RankingNet",
+    "CrossSectionalDataLoader",
+    "RankingModel",
+    "EnsembleRankingModel",
+    "CrossSectionalTrainer",
+    "ResearchHypothesis",
+    "MarketHypothesisGenerator",
+    "FactorFormulaGenerator",
+    "ResearchReportGenerator",
+    "ResearchAgent",
+    "AutoResearchPipeline"
 ]

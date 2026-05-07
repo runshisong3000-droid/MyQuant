@@ -1,0 +1,99 @@
+# MyQuant Compute Profile Configuration
+# 定义不同计算规模的配置参数
+
+profiles:
+  # 学生笔记本模式 - 最小配置，用于快速验证
+  student_laptop:
+    description: "Minimal config for quick validation on laptop"
+    # 数据参数
+    stock_count: 20
+    history_months: 6
+
+    # 公式因子参数
+    formula_factor_limit: 50
+
+    # Neural因子参数
+    neural_embedding_dim: 8
+    lookback_window: 20
+    epochs: 5
+    batch_size: 64
+    hidden_dim: 32
+
+    # 计算资源
+    device: cpu
+    use_gpu: false
+    use_llm_api: false
+
+    # 缓存设置
+    cache_dir: data/cache
+    use_cache: true
+
+    # 评估设置
+    min_stocks_per_date: 10
+    train_ratio: 0.6
+    val_ratio: 0.2
+    test_ratio: 0.2
+
+  # 轻量研究模式 - 中等配置，用于小规模研究
+  research_lite:
+    description: "Medium config for small-scale research"
+    # 数据参数
+    stock_count: 100
+    history_months: 12
+
+    # 公式因子参数
+    formula_factor_limit: 100
+
+    # Neural因子参数
+    neural_embedding_dim: 8
+    lookback_window: 20
+    epochs: 5
+    batch_size: 64
+    hidden_dim: 32
+
+    # 计算资源
+    device: cpu
+    use_gpu: false
+    use_llm_api: false
+
+    # 缓存设置
+    cache_dir: data/cache
+    use_cache: true
+
+    # 评估设置
+    min_stocks_per_date: 10
+    train_ratio: 0.6
+    val_ratio: 0.2
+    test_ratio: 0.2
+
+  # 中等研究模式 - 较大配置，用于更全面的研究
+  research_medium:
+    description: "Larger config for comprehensive research"
+    # 数据参数
+    stock_count: 300
+    history_months: 24
+
+    # 公式因子参数
+    formula_factor_limit: 200
+
+    # Neural因子参数
+    neural_embedding_dim: 16
+    lookback_window: 30
+    epochs: 10
+    batch_size: 128
+    hidden_dim: 64
+
+    # 计算资源
+    device: cuda
+    use_gpu: true
+    use_llm_api: false
+
+    # 缓存设置
+    cache_dir: data/cache
+    use_cache: true
+
+    # 评估设置
+    min_stocks_per_date: 20
+    train_ratio: 0.6
+    val_ratio: 0.2
+    test_ratio: 0.2
