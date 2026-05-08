@@ -302,6 +302,30 @@ print("  - Backtest days: {}".format(len(ret_df)))
 print("  - Final capital: {:.2f}".format(current_cash))
 print("  - Time: {:.2f}s".format(time.time() - step_start))
 
+# Save dashboard artifacts
+import os
+os.makedirs('data/dashboard', exist_ok=True)
+
+# Save equity curve
+equity_df = pd.DataFrame({
+    'date': ret_df.index,
+    'portfolio_value': (1 + ret_df['return']).cumprod() * 1000000,
+    'daily_return': ret_df['return']
+})
+equity_df.to_parquet('data/dashboard/equity_curve.parquet', index=False)
+print("  - Saved: data/dashboard/equity_curve.parquet")
+
+# Save drawdown curve
+cumulative = (1 + ret_df['return']).cumprod()
+running_max = cumulative.cummax()
+drawdown = (cumulative - running_max) / running_max
+drawdown_df = pd.DataFrame({
+    'date': ret_df.index,
+    'drawdown': drawdown
+})
+drawdown_df.to_parquet('data/dashboard/drawdown_curve.parquet', index=False)
+print("  - Saved: data/dashboard/drawdown_curve.parquet")
+
 # ============================================================================
 # Step 9: Calculate backtest metrics
 # ============================================================================
@@ -316,7 +340,23 @@ annual_return = calculate_annual_return(ret_df['cumret'])
 sharpe = calculate_sharpe(ret_df['return'])
 max_drawdown = calculate_max_drawdown(ret_df['cumret'])
 
-
+# Save backtest summary
+import json
+backtest_summary = {
+    'total_return': total_return,
+    'annual_return': annual_return,
+    'sharpe': float(sharpe),
+    'max_drawdown': float(max_drawdown),
+    'turnover': 0.0,
+    'transaction_cost': TRADING_COST,
+    'stamp_tax': STAMP_TAX,
+    'slippage': SLIPPAGE,
+    'signal_lag': 1,
+    'can_use_for_live_trading': False
+}
+with open('data/dashboard/backtest_summary.json', 'w', encoding='utf-8') as f:
+    json.dump(backtest_summary, f, indent=2)
+print("  - Saved: data/dashboard/backtest_summary.json")
 
 print("  - Total return: {:.2f}%".format(total_return*100))
 print("  - Annual return: {:.2f}%".format(annual_return*100))

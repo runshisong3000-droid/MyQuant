@@ -1,0 +1,95 @@
+{
+  "profile": "research_medium_trial",
+  "dry_run": true,
+  "run_at": "2026-05-08T23:19:22.635365",
+  "checks": [
+    {
+      "check": "Profile exists",
+      "status": "OK"
+    },
+    {
+      "check": "DataSourceManager exists",
+      "status": "OK"
+    },
+    {
+      "check": "DataSourceManager importable",
+      "status": "OK"
+    },
+    {
+      "check": "Profile config loadable: research_medium_trial",
+      "status": "OK"
+    },
+    {
+      "check": "Script exists: scripts/run_research_lite_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Script exists: scripts/run_neural_factor_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Script exists: scripts/run_oos_validation_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Script exists: scripts/run_trading_constraints_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Price metadata exists",
+      "status": "WARN"
+    },
+    {
+      "check": "Artifact isolation for formula_factors.parquet",
+      "status": "WARN"
+    },
+    {
+      "check": "Artifact isolation for neural_factors.parquet",
+      "status": "WARN"
+    },
+    {
+      "check": "Artifact isolation for factor_summary.parquet",
+      "status": "WARN"
+    },
+    {
+      "check": "Artifact isolation for oos_feature_comparison.parquet",
+      "status": "WARN"
+    },
+    {
+      "check": "Profile support: scripts/run_research_lite_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Profile support: scripts/run_neural_factor_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Profile support: scripts/run_oos_validation_pipeline.py",
+      "status": "OK"
+    },
+    {
+      "check": "Profile support: scripts/run_trading_constraints_pipeline.py",
+      "status": "OK"
+    }
+  ],
+  "profile_config": {
+    "stock_count": 150,
+    "history_months": 18,
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "lookback_window": 20,
+    "formula_factor_limit": 150,
+    "neural_embedding_dim": 8,
+    "epochs": 3,
+    "batch_size": 64,
+    "hidden_dim": 32,
+    "device": "cpu",
+    "purpose": "中等样本试跑",
+    "description": "research_medium 的预演版本，验证系统承载能力"
+  },
+  "expected_input_path": "data/processed/profiles/research_medium_trial/prices.parquet",
+  "expected_output_dir": "data/dashboard/profiles/research_medium_trial",
+  "can_proceed": true,
+  "can_use_for_live_trading": false
+}

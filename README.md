@@ -156,3 +156,36 @@ This project is for educational and research purposes only. Not investment advic
 ---
 
 *Built with passion for quantitative finance* 📈
+
+---
+
+## 🤖 AI 协作说明
+
+This project uses an AI-assisted development workflow:
+
+### Project Context System
+
+| File/Dir | Purpose |
+|----------|---------|
+| `AGENTS.md` | Long-term project context and rules |
+| `docs/` | Detailed documentation split by topic |
+| `prompts/` | Short prompt templates for common tasks |
+| `.agents/commands/` | Quick command shortcuts |
+| `.trae/rules/` | Short hard rules only |
+
+### Quick Commands
+
+You can use short prompts to execute standard workflows:
+
+- "按 bug_fix 模板执行" - Fix bugs following standard workflow
+- "按 audit 模板执行" - Run reliability audit
+- "按 dashboard 模板执行" - Build/modify visualization
+- "按 explain_code 模板执行" - Explain code in finance-student friendly language
+- "按 neural_feature_learning 模板执行" - Develop neural feature learning
+
+### Guidelines
+
+- Long context goes in `AGENTS.md` - no need to paste repeatedly
+- Detailed explanations go in `docs/`
+- Task-specific workflows go in `prompts/`
+- Short hard rules go in `.trae/rules/`

@@ -1,24 +1,25 @@
 """
-Research Lite Pipeline - 研究轻量模式 (修复版)
+Research Factor Pipeline - 研究因子 Pipeline
 
-从 student_laptop 模式升级到小研究样本模式。
-
-目标:
-- 100只股票
-- 1年历史数据
-- 100个公式因子
-- 8个neural factors
+支持多种 profile：
+- student_laptop: 20只股票，6个月
+- research_lite: 100只股票，12个月
+- research_medium_trial: 150只股票，18个月
+- research_medium: 300只股票，24个月
 
 特点:
-- 使用AkShare真实数据
+- 使用DataSourceManager统一管理数据获取
 - 本地parquet缓存
 - 公式因子和neural因子分别评价
 - 样本外验证
 - 可信度审计
+- 支持 profile 参数
+- 数据不足时FAIL或WARN
 """
 
 import sys
 import os
+import argparse
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
@@ -30,64 +31,61 @@ import numpy as np
 import pandas as pd
 import yaml
 
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Research Factor Pipeline')
+parser.add_argument('--profile', default='research_lite', 
+                    help='Profile name from compute_profile.yaml')
+args = parser.parse_args()
+
+profile_name = args.profile
+
 print("=" * 80)
-print("MyQuant Research Lite Pipeline (Reliability Fix Version)")
+print(f"MyQuant Research Factor Pipeline")
+print(f"Profile: {profile_name}")
 print("=" * 80)
 
 start_time = time.time()
 
 # ============================================================================
-# Step 1: Load Configuration
+# Step 1: Load Configuration & Initialize DataSourceManager
 # ============================================================================
 print("\n" + "=" * 80)
 print("[Step 1] Load Configuration")
 print("=" * 80)
 step_start = time.time()
 
-config_path = 'config/compute_profile.yaml'
+from src.data.data_source_manager import DataSourceManager
 
-if os.path.exists(config_path):
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config_all = yaml.safe_load(f)
+ds_manager = DataSourceManager()
 
-    config = config_all['profiles']['research_lite']
-    print("  - Profile: research_lite")
-    print("  - Config loaded from: {}".format(config_path))
-else:
-    print("  - [WARN] Config file not found, using defaults")
-    config = {
-        'stock_count': 100,
-        'history_months': 12,
-        'formula_factor_limit': 100,
-        'neural_embedding_dim': 8,
-        'lookback_window': 20,
-        'epochs': 5,
-        'batch_size': 64,
-        'hidden_dim': 32,
-        'device': 'cpu',
-        'use_cache': True,
-        'cache_dir': 'data/cache',
-        'train_ratio': 0.6,
-        'val_ratio': 0.2,
-        'test_ratio': 0.2
-    }
+profile_config = ds_manager.get_profile_config(profile_name)
+data_source_config = ds_manager.get_data_source_config()
 
-STOCK_COUNT_TARGET = config['stock_count']
-HISTORY_MONTHS_TARGET = config['history_months']
-FORMULA_FACTOR_LIMIT = config['formula_factor_limit']
-NEURAL_EMBEDDING_DIM = config['neural_embedding_dim']
-LOOKBACK_WINDOW = config['lookback_window']
-EPOCHS = config['epochs']
-BATCH_SIZE = config['batch_size']
-HIDDEN_DIM = config['hidden_dim']
-DEVICE = config['device']
-USE_CACHE = config.get('use_cache', True)
-CACHE_DIR = config.get('cache_dir', 'data/cache')
-TRAIN_RATIO = config['train_ratio']
-VAL_RATIO = config['val_ratio']
-TEST_RATIO = config['test_ratio']
+if not profile_config:
+    print(f"  - [ERROR] Profile '{profile_name}' not found in config")
+    sys.exit(1)
+
+STOCK_COUNT_TARGET = profile_config.get('stock_count', 100)
+HISTORY_MONTHS_TARGET = profile_config.get('history_months', 12)
+FORMULA_FACTOR_LIMIT = profile_config.get('formula_factor_limit', 100)
+NEURAL_EMBEDDING_DIM = profile_config.get('neural_embedding_dim', 8)
+LOOKBACK_WINDOW = profile_config.get('lookback_window', 20)
+EPOCHS = profile_config.get('epochs', 5)
+BATCH_SIZE = profile_config.get('batch_size', 64)
+HIDDEN_DIM = profile_config.get('hidden_dim', 32)
+DEVICE = profile_config.get('device', 'cpu')
+TRAIN_RATIO = profile_config.get('train_ratio', 0.6)
+VAL_RATIO = profile_config.get('val_ratio', 0.2)
+TEST_RATIO = profile_config.get('test_ratio', 0.2)
+
+# Profile-specific output directories
+PROFILE_DIR = f'data/processed/profiles/{profile_name}'
+DASHBOARD_DIR = f'data/dashboard/profiles/{profile_name}'
+os.makedirs(PROFILE_DIR, exist_ok=True)
+os.makedirs(DASHBOARD_DIR, exist_ok=True)
 
 print("\n[Diagnostics] Configuration:")
+print("  - Profile: {}".format(profile_name))
 print("  - Target stock count: {}".format(STOCK_COUNT_TARGET))
 print("  - Target history months: {}".format(HISTORY_MONTHS_TARGET))
 print("  - Formula factor limit: {}".format(FORMULA_FACTOR_LIMIT))
@@ -95,133 +93,46 @@ print("  - Neural embedding dim: {}".format(NEURAL_EMBEDDING_DIM))
 print("  - Lookback window: {}".format(LOOKBACK_WINDOW))
 print("  - Epochs: {}".format(EPOCHS))
 print("  - Device: {}".format(DEVICE))
-print("  - Use cache: {}".format(USE_CACHE))
+print("  - Profile directory: {}".format(PROFILE_DIR))
+print("  - Dashboard directory: {}".format(DASHBOARD_DIR))
 print("  - [OK] Config loaded in {:.2f}s".format(time.time() - step_start))
 
 # ============================================================================
-# Step 2: Load or Fetch Data
+# Step 2: Load or Fetch Data via DataSourceManager
 # ============================================================================
 print("\n" + "=" * 80)
 print("[Step 2] Load or Fetch Data")
 print("=" * 80)
 step_start = time.time()
 
-CACHE_FILE = 'data/processed/research_lite_prices.parquet'
-os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+print(f"\n  - Using DataSourceManager for {profile_name}")
+price_data, result = ds_manager.fetch_price_panel(profile_name)
 
-from src.utils.date_utils import calculate_start_date, calculate_start_date_str
+status = result.get('status', 'FAIL')
+metadata = result.get('metadata', {})
 
-END_DATE_DT = datetime.now()
-END_DATE = END_DATE_DT.strftime('%Y%m%d')
-START_DATE = calculate_start_date_str(END_DATE_DT, history_months=HISTORY_MONTHS_TARGET)
+print(f"  - Data fetch status: {status}")
 
-print("\n[Diagnostics] Date Range:")
-print("  - Target history months: {}".format(HISTORY_MONTHS_TARGET))
-print("  - END_DATE: {}".format(END_DATE))
-print("  - START_DATE: {}".format(START_DATE))
-print("  - Calculation method: timedelta(days=months*30)")
+if status == 'FAIL':
+    print(f"  - [FAIL] Data fetch failed!")
+    print(f"  - Reason: {result.get('reason', 'Unknown')}")
+    
+    # Generate reliability report even on failure
+    ds_manager.generate_data_fetch_report(profile_name)
+    
+    print("\n" + "!" * 80)
+    print("  [CRITICAL FAILURE] Data fetch failed - cannot proceed")
+    print("  Check reports/data_source_reliability_report.md for details")
+    print("!" * 80)
+    sys.exit(1)
 
-price_data = None
-cache_used = False
+if status == 'WARN':
+    print(f"  - [WARN] Data fetch completed with warnings")
+    print(f"  - Actual stock count may be below target")
 
-if USE_CACHE and os.path.exists(CACHE_FILE):
-    print("\n  - Loading from cache: {}".format(CACHE_FILE))
-    price_data = pd.read_parquet(CACHE_FILE)
-    print("  - [WARN] Using cached data - may not match target 100 stocks / 12 months")
-    cache_used = True
-
-if price_data is None or price_data['stock'].nunique() < 40:
-    print("\n  - Fetching from AkShare...")
-
-    BASE_STOCKS_RELIABLE = [
-        '000001.SZ', '000002.SZ', '000858.SZ', '600000.SH', '600036.SH',
-        '600028.SH', '600030.SH', '600050.SH', '600519.SH', '601318.SH',
-        '601288.SH', '601398.SH', '601857.SH', '601988.SH', '000333.SZ',
-        '000651.SZ', '002594.SZ', '600900.SH', '601012.SH', '601166.SH',
-        '600036.SH', '600048.SH', '600104.SH', '600309.SH', '600436.SH',
-        '600585.SH', '600690.SH', '600887.SH', '601088.SH', '601186.SH',
-        '000725.SZ', '000898.SZ', '002415.SZ', '002475.SZ', '002594.SZ',
-        '600009.SH', '600025.SH', '600100.SH', '600111.SH', '600150.SH',
-        '600438.SH', '600760.SH', '600893.SH', '601066.SH', '601225.SH',
-        '601236.SH', '601319.SH', '601336.SH', '601628.SH', '601668.SH',
-        '000063.SZ', '000166.SZ', '000776.SZ', '002007.SZ', '002024.SZ',
-        '002027.SZ', '002129.SZ', '002230.SZ', '002241.SZ', '002271.SZ',
-        '002304.SZ', '002352.SZ', '002371.SZ', '002384.SZ', '002405.SZ',
-        '002410.SZ', '002460.SZ', '002468.SZ', '002475.SZ', '002508.SZ',
-        '002531.SZ', '002555.SZ', '002557.SZ', '002563.SZ', '002568.SZ',
-        '600066.SH', '600089.SH', '600143.SH', '600153.SH', '600170.SH',
-        '600177.SH', '600183.SH', '600196.SH', '600201.SH', '600219.SH',
-        '600221.SH', '600233.SH', '600258.SH', '600271.SH', '600276.SH'
-    ]
-
-    import akshare as ak
-
-    all_data = []
-    fetched_symbols = []
-    failed_symbols = []
-
-    for i, stock_code in enumerate(BASE_STOCKS_RELIABLE[:STOCK_COUNT_TARGET + 20]):
-        try:
-            symbol = stock_code.split('.')[0]
-            df = ak.stock_zh_a_hist(
-                symbol=symbol,
-                start_date=START_DATE,
-                end_date=END_DATE,
-                adjust='qfq'
-            )
-
-            if df is not None and len(df) > 30:
-                df = df.rename(columns={
-                    '日期': 'date',
-                    '开盘': 'open',
-                    '收盘': 'close',
-                    '最高': 'high',
-                    '最低': 'low',
-                    '成交量': 'volume',
-                    '成交额': 'amount',
-                    '涨跌幅': 'pct_change',
-                    '换手率': 'turnover'
-                })
-                df['date'] = pd.to_datetime(df['date'])
-                df['stock'] = stock_code
-                all_data.append(df)
-                fetched_symbols.append(stock_code)
-
-            if (i + 1) % 20 == 0:
-                print("  - Fetched {}/{} stocks... (success: {})".format(i + 1, STOCK_COUNT_TARGET + 20, len(fetched_symbols)))
-
-            if len(fetched_symbols) >= STOCK_COUNT_TARGET:
-                print("  - Target stock count ({}) reached!".format(STOCK_COUNT_TARGET))
-                break
-
-        except Exception as e:
-            failed_symbols.append({
-                'symbol': stock_code,
-                'error': str(e)[:100]
-            })
-
-    print("\n[Diagnostics] Stock Fetch Results:")
-    print("  - Target: {}".format(STOCK_COUNT_TARGET))
-    print("  - Successfully fetched: {}".format(len(fetched_symbols)))
-    print("  - Failed: {}".format(len(failed_symbols)))
-
-    if len(failed_symbols) > 0:
-        print("  - Failed symbols (first 5): {}".format([x['symbol'] for x in failed_symbols[:5]]))
-
-    if len(fetched_symbols) == 0:
-        print("  - [FAIL] Cannot fetch any real data")
-        sys.exit(1)
-
-    price_data = pd.concat(all_data, ignore_index=True)
-    price_data = price_data.sort_values(['stock', 'date']).reset_index(drop=True)
-
-    if USE_CACHE:
-        price_data.to_parquet(CACHE_FILE, index=False)
-        print("  - Saved to cache: {}".format(CACHE_FILE))
-
-START_DATE = price_data['date'].min().strftime('%Y%m%d')
-END_DATE = price_data['date'].max().strftime('%Y%m%d')
-ACTUAL_STOCK_COUNT = price_data['stock'].nunique()
+ACTUAL_STOCK_COUNT = metadata.get('actual_stock_count', price_data['stock'].nunique())
+START_DATE = metadata.get('actual_start_date', price_data['date'].min().strftime('%Y%m%d'))
+END_DATE = metadata.get('actual_end_date', price_data['date'].max().strftime('%Y%m%d'))
 
 print("\n[Diagnostics] Data Summary:")
 print("  - Target stock count: {}".format(STOCK_COUNT_TARGET))
@@ -236,6 +147,11 @@ print("  - Dates range: {} - {}".format(stock_count_by_date.index[0], stock_coun
 print("  - Stock count by date - min: {}, max: {}, avg: {:.1f}".format(
     stock_count_by_date.min(), stock_count_by_date.max(), stock_count_by_date.mean()
 ))
+
+# Generate data fetch report
+ds_manager.generate_data_fetch_report(profile_name)
+print("  - Data source reliability report generated")
+
 print("  - [OK] Data loaded in {:.2f}s".format(time.time() - step_start))
 
 # ============================================================================
@@ -345,7 +261,10 @@ for i, (name, factor_data) in enumerate(formula_factor_items):
             'icir': eval_result.get('icir', 0),
             'coverage': eval_result.get('coverage', 0),
             'turnover': eval_result.get('turnover', 0),
-            'rank_ic_count': eval_result['rank_ic']['count']
+            'rank_ic_count': eval_result['rank_ic']['count'],
+            'rank_ic_timeseries': eval_result['rank_ic'].get('timeseries', []),
+            'rank_ic_dates': eval_result['rank_ic'].get('dates', []),
+            'factor_data': factor_data  # 保存原始因子数据用于相关性计算
         }
 
     except Exception as e:
@@ -363,6 +282,167 @@ if len(formula_eval_failures) > 0:
     print("  - Failure samples:")
     for name, reason in list(formula_eval_failures.items())[:5]:
         print("    - {}: {}".format(name, reason))
+
+# Save dashboard artifacts - factor summary, IC series and correlation
+# Factor summary
+if formula_eval_results:
+    factor_summary_data = []
+    factor_ic_series_data = []
+    
+    for name, result in formula_eval_results.items():
+        factor_summary_data.append({
+            'factor_name': name,
+            'factor_type': 'formula',
+            'rank_ic_mean': result['rank_ic_mean'],
+            'icir': result['icir'],
+            'coverage': result['coverage'],
+            'turnover': result['turnover'],
+            'gatekeeper_status': 'PASS' if abs(result['rank_ic_mean']) > 0.01 and result['icir'] > 0.1 else 'FAIL',
+            'is_neural_factor': False,
+            'is_formula_factor': True
+        })
+        
+        # Save IC series
+        if result.get('rank_ic_timeseries') and result.get('rank_ic_dates'):
+            for date, ic in zip(result['rank_ic_dates'], result['rank_ic_timeseries']):
+                factor_ic_series_data.append({
+                    'date': date,
+                    'factor_name': name,
+                    'rank_ic': ic
+                })
+    
+    factor_summary_df = pd.DataFrame(factor_summary_data)
+    factor_summary_path = os.path.join(DASHBOARD_DIR, 'factor_summary.parquet')
+    factor_summary_df.to_parquet(factor_summary_path, index=False)
+    print(f"  - Saved: {factor_summary_path}")
+    
+    # Save factor IC series
+    if factor_ic_series_data:
+        factor_ic_series_df = pd.DataFrame(factor_ic_series_data)
+        factor_ic_series_path = os.path.join(DASHBOARD_DIR, 'factor_ic_series.parquet')
+        factor_ic_series_df.to_parquet(factor_ic_series_path, index=False)
+        print(f"  - Saved: {factor_ic_series_path}")
+    
+    # Calculate and save factor correlation (memory-efficient)
+    factor_names = list(formula_eval_results.keys())
+    if len(factor_names) >= 2:
+        correlation_data = []
+        
+        # Calculate correlation pairwise to avoid memory issues
+        for i in range(len(factor_names)):
+            for j in range(i + 1, len(factor_names)):
+                f1_name = factor_names[i]
+                f2_name = factor_names[j]
+                
+                f1_data = formula_eval_results[f1_name].get('factor_data')
+                f2_data = formula_eval_results[f2_name].get('factor_data')
+                
+                if f1_data is not None and f2_data is not None:
+                    try:
+                        # Find common index
+                        common_idx = f1_data.dropna().index.intersection(f2_data.dropna().index)
+                        
+                        if len(common_idx) > 10:
+                            f1_vals = f1_data.loc[common_idx]
+                            f2_vals = f2_data.loc[common_idx]
+                            
+                            # Use rank correlation (Spearman) which is more robust
+                            corr = f1_vals.corr(f2_vals, method='spearman')
+                            
+                            if not np.isnan(corr):
+                                correlation_data.append({
+                                    'factor_1': f1_name,
+                                    'factor_2': f2_name,
+                                    'correlation': float(corr)
+                                })
+                    except Exception:
+                        continue
+        
+        if correlation_data:
+            correlation_df = pd.DataFrame(correlation_data)
+            correlation_path = os.path.join(DASHBOARD_DIR, 'factor_correlation.parquet')
+            correlation_df.to_parquet(correlation_path, index=False)
+            print(f"  - Saved: {correlation_path}")
+
+# Save formula factor panel (stock-date level factor values)
+if formula_eval_results:
+    print("\n[Diagnostics] Saving Formula Factor Panel:")
+    
+    factor_dfs = []
+    for name, result in formula_eval_results.items():
+        factor_data = result.get('factor_data')
+        if factor_data is not None:
+            df = factor_data.reset_index()
+            df = df.rename(columns={0: name})
+            factor_dfs.append(df)
+    
+    if factor_dfs:
+        formula_factors_panel = factor_dfs[0]
+        for df in factor_dfs[1:]:
+            formula_factors_panel = pd.merge(formula_factors_panel, df, on=['date', 'stock'], how='inner')
+        
+        formula_factors_path = os.path.join(DASHBOARD_DIR, 'formula_factors.parquet')
+        formula_factors_panel.to_parquet(formula_factors_path, index=False)
+        print(f"  - Saved: {formula_factors_path} (shape: {formula_factors_panel.shape})")
+        
+        # Save metadata
+        formula_factor_metadata = {
+            'factor_count': len(formula_eval_results),
+            'factor_names': list(formula_eval_results.keys()),
+            'date_range': {
+                'min': formula_factors_panel['date'].min().strftime('%Y-%m-%d'),
+                'max': formula_factors_panel['date'].max().strftime('%Y-%m-%d')
+            },
+            'stock_count': formula_factors_panel['stock'].nunique(),
+            'rows': len(formula_factors_panel),
+            'columns': len(formula_factors_panel.columns),
+            'generated_at': datetime.now().isoformat(),
+            'leakage_check_status': 'PENDING',
+            'source_pipeline': 'run_research_lite_pipeline.py'
+        }
+        
+        formula_metadata_path = os.path.join(DASHBOARD_DIR, 'formula_factor_metadata.json')
+        with open(formula_metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(formula_factor_metadata, f, ensure_ascii=False, indent=2)
+        print(f"  - Saved: {formula_metadata_path}")
+        
+        # Update profile-specific manifest
+        manifest_path = os.path.join(DASHBOARD_DIR, 'profile_manifest.json')
+        if os.path.exists(manifest_path):
+            with open(manifest_path, 'r', encoding='utf-8') as f:
+                manifest = json.load(f)
+        else:
+            manifest = {'version': '1.0', 'generated_at': datetime.now().isoformat(), 'artifacts': {}}
+        
+        manifest['profile'] = profile_name
+        manifest['stock_count_target'] = STOCK_COUNT_TARGET
+        manifest['stock_count_actual'] = ACTUAL_STOCK_COUNT
+        manifest['history_months_target'] = HISTORY_MONTHS_TARGET
+        manifest['date_start'] = START_DATE
+        manifest['date_end'] = END_DATE
+        manifest['can_use_for_live_trading'] = False
+        
+        manifest['artifacts']['formula_factors.parquet'] = {
+            'exists': True,
+            'generated_by': 'run_research_lite_pipeline.py',
+            'last_updated': datetime.now().isoformat(),
+            'rows': len(formula_factors_panel),
+            'columns': len(formula_factors_panel.columns),
+            'status': 'OK',
+            'note': 'Stock-date level formula factor values'
+        }
+        
+        manifest['artifacts']['formula_factor_metadata.json'] = {
+            'exists': True,
+            'generated_by': 'run_research_lite_pipeline.py',
+            'last_updated': datetime.now().isoformat(),
+            'status': 'OK',
+            'note': 'Formula factor metadata'
+        }
+        
+        with open(manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest, f, ensure_ascii=False, indent=2)
+        print(f"  - Updated: {manifest_path}")
 
 print("  - [OK] Formula factors evaluated in {:.2f}s".format(time.time() - step_start))
 
@@ -390,7 +470,7 @@ dataset = SequenceDataset(
     target_horizon=1
 )
 
-X, metadata = dataset.get_samples()
+X, metadata_df = dataset.get_samples()
 
 splits = dataset.get_train_val_test_split(
     train_ratio=TRAIN_RATIO,
@@ -408,11 +488,11 @@ print("  - Val samples: {}, dates: {} - {}".format(len(X_val), meta_val['signal_
 print("  - Test samples: {}, dates: {} - {}".format(len(X_test), meta_test['signal_date'].min(), meta_test['signal_date'].max()))
 
 print("\n[Diagnostics] Target Alignment Check:")
-print("  - metadata shape: {}".format(metadata.shape))
-print("  - signal_date min/max: {} / {}".format(metadata['signal_date'].min(), metadata['signal_date'].max()))
-print("  - target_start_date min/max: {} / {}".format(metadata['target_start_date'].min(), metadata['target_start_date'].max()))
+print("  - metadata shape: {}".format(metadata_df.shape))
+print("  - signal_date min/max: {} / {}".format(metadata_df['signal_date'].min(), metadata_df['signal_date'].max()))
+print("  - target_start_date min/max: {} / {}".format(metadata_df['target_start_date'].min(), metadata_df['target_start_date'].max()))
 
-alignment_violations = metadata[metadata['target_start_date'] <= metadata['signal_date']]
+alignment_violations = metadata_df[metadata_df['target_start_date'] <= metadata_df['signal_date']]
 print("  - Violations (target_start_date <= signal_date): {}".format(len(alignment_violations)))
 if len(alignment_violations) > 0:
     print("  - First 5 violations:")
@@ -422,7 +502,7 @@ if len(alignment_violations) > 0:
 checker = NeuralLeakageChecker()
 leakage_results = checker.run_all_checks(
     columns=RAW_FEATURES,
-    metadata=metadata,
+    metadata=metadata_df,
     train_dates=(meta_train['signal_date'].min(), meta_train['signal_date'].max()),
     val_dates=(meta_val['signal_date'].min(), meta_val['signal_date'].max()),
     test_dates=(meta_test['signal_date'].min(), meta_test['signal_date'].max())
@@ -566,6 +646,26 @@ if OVERALL_STATUS in ['OK', 'WARN']:
                 import traceback
                 print("    - Traceback: {}".format(traceback.format_exc()[:200]))
 
+    if neural_eval_results:
+        neural_summary_data = []
+        for name, result in neural_eval_results.items():
+            neural_summary_data.append({
+                'factor_name': name,
+                'encoder_type': 'mlp',
+                'rank_ic_mean': result['rank_ic_mean'],
+                'icir': result['icir'],
+                'coverage': result['coverage'],
+                'turnover': result['turnover'],
+                'gatekeeper_status': 'PASS' if abs(result['rank_ic_mean']) > 0.01 and result['icir'] > 0.1 else 'FAIL',
+                'is_neural_factor': True,
+                'is_formula_factor': False
+            })
+        
+        neural_summary_df = pd.DataFrame(neural_summary_data)
+        neural_summary_path = os.path.join(DASHBOARD_DIR, 'neural_factor_summary.parquet')
+        neural_summary_df.to_parquet(neural_summary_path, index=False)
+        print(f"  - Saved: {neural_summary_path}")
+    
     print("\n  - [OK] Neural factors evaluated in {:.2f}s".format(time.time() - step_start))
 
 else:
@@ -583,7 +683,7 @@ formula_df = pd.DataFrame(formula_eval_results).T.sort_values('rank_ic_mean', as
 neural_df = pd.DataFrame(neural_eval_results).T.sort_values('rank_ic_mean', ascending=False) if neural_eval_results else pd.DataFrame()
 
 report_lines = []
-report_lines.append("# Research Lite Pipeline Report (Reliability Audit)")
+report_lines.append(f"# Research Pipeline Report ({profile_name})")
 report_lines.append("")
 report_lines.append("Generated: {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 report_lines.append("")
@@ -693,7 +793,7 @@ report_lines.append("Total time: {:.2f}s".format(time.time() - start_time))
 
 report = "\n".join(report_lines)
 
-REPORT_FILE = 'reports/research_lite_report.md'
+REPORT_FILE = f'reports/{profile_name}_report.md'
 with open(REPORT_FILE, 'w', encoding='utf-8') as f:
     f.write(report)
 
@@ -704,10 +804,16 @@ print("  - [OK] Report generated in {:.2f}s".format(time.time() - step_start))
 # Done
 # ============================================================================
 print("\n" + "=" * 80)
-print("Research Lite Pipeline Completed!")
+print("Research Pipeline Completed!")
 print("=" * 80)
+print(f"Profile: {profile_name}")
 print("Total time: {:.2f}s".format(time.time() - start_time))
 print("Report: {}".format(REPORT_FILE))
 
 if OVERALL_STATUS == 'FAIL':
     print("\n[IMPORTANT] Leakage check FAILED - results may be unreliable")
+
+if stock_status == 'FAIL':
+    print("\n[IMPORTANT] Stock count is below acceptable threshold")
+    print(f"  - Target: {STOCK_COUNT_TARGET}, Actual: {ACTUAL_STOCK_COUNT}")
+    print("  - Consider checking data source reliability")

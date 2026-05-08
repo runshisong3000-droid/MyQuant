@@ -1,11 +1,14 @@
 """
 Neural Factor Pipeline - 神经因子流水线
 
-从原始OHLCV序列中学习latent embedding，转换为neural factors，
-并接入现有FactorEvaluator/FactorScreener/FactorGatekeeper体系。
+支持多种 profile：
+- student_laptop: 20只股票，6个月
+- research_lite: 100只股票，12个月
+- research_medium_trial: 150只股票，18个月
+- research_medium: 300只股票，24个月
 
 流程:
-1. 加载真实数据
+1. 加载真实数据（从 profile-specific 目录）
 2. 数据标准化
 3. 生成future_return(按stock分组)
 4. 构造序列数据集
@@ -16,11 +19,12 @@ Neural Factor Pipeline - 神经因子流水线
 9. 转换为neural factors
 10. 评价neural factors
 11. 对比普通因子
-12. 输出报告
+12. 输出报告（到 profile-specific 目录）
 """
 
 import sys
 import os
+import argparse
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import time
@@ -29,84 +33,67 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import yaml
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Neural Factor Pipeline')
+parser.add_argument('--profile', default='research_lite', 
+                    help='Profile name from compute_profile.yaml')
+args = parser.parse_args()
+
+profile_name = args.profile
 
 print("=" * 60)
 print("MyQuant Neural Factor Pipeline")
+print(f"Profile: {profile_name}")
 print("=" * 60)
 
 start_time = time.time()
 
+# Load configuration
+config_path = 'config/compute_profile.yaml'
+with open(config_path, 'r', encoding='utf-8') as f:
+    config_all = yaml.safe_load(f)
+
+profiles = config_all.get('profiles', {})
+if profile_name not in profiles:
+    print(f"[ERROR] Profile '{profile_name}' not found in config")
+    print(f"[INFO] Available profiles: {list(profiles.keys())}")
+    sys.exit(1)
+
+config = profiles[profile_name]
+
+# Profile-specific directories
+PROFILE_DIR = f'data/processed/profiles/{profile_name}'
+DASHBOARD_DIR = f'data/dashboard/profiles/{profile_name}'
+os.makedirs(PROFILE_DIR, exist_ok=True)
+os.makedirs(DASHBOARD_DIR, exist_ok=True)
+
 # ============================================================================
-# Step 1: Load Real Data
+# Step 1: Load Real Data (从 profile-specific 目录读取)
 # ============================================================================
 print("\n[Step 1] Load Real Data...")
 step_start = time.time()
 
-STOCK_POOL = ['000001.SZ', '000002.SZ', '000858.SZ', '600000.SH', '600009.SH',
-              '600016.SH', '600028.SH', '600030.SH', '600050.SH', '600104.SH',
-              '600519.SH', '600887.SH', '601012.SH', '601088.SH', '601166.SH',
-              '601288.SH', '601318.SH', '601398.SH', '601857.SH', '601988.SH']
+PRICES_PATH = os.path.join(PROFILE_DIR, 'prices.parquet')
+price_data = None
+data_source = profile_name
 
-END_DATE = datetime.now().strftime('%Y%m%d')
-START_DATE = (datetime.now().replace(month=max(1, datetime.now().month - 6))).strftime('%Y%m%d')
-
-print("  - Stock count: {}".format(len(STOCK_POOL)))
-print("  - Time range: {} ~ {}".format(START_DATE, END_DATE))
-
-try:
-    import akshare as ak
-
-    all_data = []
-    fetch_success = 0
-
-    for i, stock_code in enumerate(STOCK_POOL):
-        try:
-            symbol = stock_code.split('.')[0]
-            df = ak.stock_zh_a_hist(
-                symbol=symbol,
-                start_date=START_DATE,
-                end_date=END_DATE,
-                adjust='qfq'
-            )
-
-            if df is not None and len(df) > 0:
-                df = df.rename(columns={
-                    '日期': 'date',
-                    '开盘': 'open',
-                    '收盘': 'close',
-                    '最高': 'high',
-                    '最低': 'low',
-                    '成交量': 'volume',
-                    '成交额': 'amount',
-                    '涨跌幅': 'pct_change',
-                    '换手率': 'turnover'
-                })
-                df['date'] = pd.to_datetime(df['date'])
-                df['stock'] = stock_code
-                all_data.append(df)
-                fetch_success += 1
-
-            if (i + 1) % 5 == 0:
-                print("  - Fetched {}/{} stocks...".format(i + 1, len(STOCK_POOL)))
-
-        except Exception as e:
-            print("  - [WARN] Failed to fetch {}: {}".format(stock_code, e))
-
-    print("  - Successfully fetched: {}/{} stocks".format(fetch_success, len(STOCK_POOL)))
-
-    if fetch_success == 0:
-        print("  - [FAIL] Cannot fetch any real data")
-        sys.exit(1)
-
-    price_data = pd.concat(all_data, ignore_index=True)
-    price_data = price_data.sort_values(['stock', 'date']).reset_index(drop=True)
-
-    print("  - Merged data shape: {}".format(price_data.shape))
-    print("  - [OK] Time: {:.2f}s".format(time.time() - step_start))
-
-except ImportError:
-    print("  - [FAIL] AkShare not installed")
+if os.path.exists(PRICES_PATH):
+    print("  - Loading from: {}".format(PRICES_PATH))
+    price_data = pd.read_parquet(PRICES_PATH)
+    print("  - Loaded: shape={}".format(price_data.shape))
+    print("  - Date range: {} to {}".format(
+        price_data['date'].min().date() if 'date' in price_data.columns else 'N/A',
+        price_data['date'].max().date() if 'date' in price_data.columns else 'N/A'
+    ))
+    print("  - Stock count: {}".format(price_data['stock'].nunique() if 'stock' in price_data.columns else 'N/A'))
+else:
+    print("  - [FAIL] Prices not found at: {}".format(PRICES_PATH))
+    print("  - Please run run_research_lite_pipeline.py first")
     sys.exit(1)
+
+print("  - [OK] Time: {:.2f}s".format(time.time() - step_start))
 
 # ============================================================================
 # Step 2: Data Standardization
@@ -332,16 +319,16 @@ print("  - Final train_loss: {:.6f}".format(train_losses[-1] if train_losses els
 print("  - [OK] Time: {:.2f}s".format(time.time() - step_start))
 
 # ============================================================================
-# Step 8: Extract Embeddings
+# Step 8: Extract Embeddings (All samples, not just test!)
 # ============================================================================
-print("\n[Step 8] Extract Embeddings...")
+print("\n[Step 8] Extract Embeddings (All samples)...")
 step_start = time.time()
 
 model.eval()
 
 with torch.no_grad():
-    X_test_tensor = torch.FloatTensor(X_test).to(DEVICE)
-    _, embeddings = model(X_test_tensor)
+    X_all_tensor = torch.FloatTensor(X).to(DEVICE)
+    _, embeddings = model(X_all_tensor)
 
 embeddings = embeddings.cpu().numpy()
 
@@ -358,7 +345,7 @@ from src.factors.neural.neural_factor_extractor import NeuralFactorExtractor
 
 extractor = NeuralFactorExtractor(embedding_dim=EMBEDDING_DIM)
 
-factors_df = extractor.embedding_to_dataframe(embeddings, meta_test.reset_index(drop=True))
+factors_df = extractor.embedding_to_dataframe(embeddings, metadata.reset_index(drop=True))
 
 print("  - Neural factors shape: {}".format(factors_df.shape))
 print("  - Columns: {}".format(list(factors_df.columns[:5])))
@@ -368,22 +355,35 @@ os.makedirs('reports', exist_ok=True)
 
 extractor.save_factors(factors_df, 'data/factors/neural_factors.parquet')
 
-metadata_dict = extractor.create_metadata(
-    model_type='SequenceAutoEncoder',
-    lookback_window=LOOKBACK_WINDOW,
-    raw_features=RAW_FEATURES,
-    embedding_dim=EMBEDDING_DIM,
-    train_start_date=meta_train['signal_date'].min() if len(meta_train) > 0 else None,
-    train_end_date=meta_train['signal_date'].max() if len(meta_train) > 0 else None,
-    validation_start_date=meta_val['signal_date'].min() if len(meta_val) > 0 else None,
-    validation_end_date=meta_val['signal_date'].max() if len(meta_val) > 0 else None,
-    test_start_date=meta_test['signal_date'].min() if len(meta_test) > 0 else None,
-    test_end_date=meta_test['signal_date'].max() if len(meta_test) > 0 else None,
-    horizon=TARGET_HORIZON,
-    training_mode='self_supervised',
-    device=DEVICE,
-    leakage_check_result=leakage_results
-)
+# Also save to profile-specific dashboard directory
+factors_df.to_parquet(os.path.join(DASHBOARD_DIR, 'neural_factors.parquet'), index=False)
+print(f"  - Saved to dashboard: {os.path.join(DASHBOARD_DIR, 'neural_factors.parquet')}")
+
+# Save neural factor summary (will be generated later)
+# We save this part after evaluation
+
+# Save neural factor metadata to profile-specific dashboard directory
+metadata_dict = {
+    'data_source': data_source,
+    'price_panel_path': PRICES_PATH,
+    'input_date_range': (price_data['date'].min(), price_data['date'].max()),
+    'output_date_range': (factors_df['signal_date'].min(), factors_df['signal_date'].max()) if 'signal_date' in factors_df.columns else (None, None),
+    'input_stock_count': price_data['stock'].nunique(),
+    'output_stock_count': factors_df['stock'].nunique() if 'stock' in factors_df.columns else 0,
+    'sample_count': len(factors_df),
+    'train_start': meta_train['signal_date'].min() if len(meta_train) > 0 else None,
+    'train_end': meta_train['signal_date'].max() if len(meta_train) > 0 else None,
+    'validation_start': meta_val['signal_date'].min() if len(meta_val) > 0 else None,
+    'validation_end': meta_val['signal_date'].max() if len(meta_val) > 0 else None,
+    'test_start': meta_test['signal_date'].min() if len(meta_test) > 0 else None,
+    'test_end': meta_test['signal_date'].max() if len(meta_test) > 0 else None,
+    'leakage_check_status': leakage_results.get('overall_status', 'UNKNOWN')
+}
+import json
+neural_factor_metadata_path = os.path.join(DASHBOARD_DIR, 'neural_factor_metadata.json')
+with open(neural_factor_metadata_path, 'w', encoding='utf-8') as f:
+    json.dump({k: str(v) for k, v in metadata_dict.items()}, f, ensure_ascii=False, indent=2)
+print(f"  - Saved to dashboard: {neural_factor_metadata_path}")
 
 extractor.save_metadata(metadata_dict, 'reports/neural_factor_metadata.json')
 

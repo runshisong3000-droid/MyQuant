@@ -1,12 +1,12 @@
 # MyQuant Light Real Data Pipeline Report
 
-Generated: 2026-05-07 22:46:02
+Generated: 2026-05-08 14:55:46
 
 ## 1. Data Overview
 
 - **Data Source**: AkShare
 - **Stock Count**: 20
-- **Time Range**: 20260107 ~ 20260507
+- **Time Range**: 20260108 ~ 20260508
 - **Data Points**: 1540
 
 ## 2. Factor Research
@@ -19,28 +19,28 @@ Generated: 2026-05-07 22:46:02
 
 | Factor | RankIC | ICIR | Coverage |
 |--------|--------|------|----------|
-| momentum_simple_20 | 0.0510 | 0.1536 | 0.99 |
-| momentum_rel_ma20 | 0.0373 | 0.1168 | 0.99 |
-| momentum_simple_10 | 0.0337 | 0.1013 | 0.99 |
-| momentum_chg_5vs60 | 0.0322 | 0.1122 | 0.96 |
-| momentum_chg_3vs60 | 0.0293 | 0.1043 | 0.96 |
+| momentum_simple_20 | 0.0546 | 0.1648 | 0.99 |
+| momentum_rel_ma20 | 0.0430 | 0.1345 | 0.99 |
+| momentum_rel_ma5 | 0.0389 | 0.1379 | 1.00 |
+| momentum_chg_5vs60 | 0.0379 | 0.1336 | 0.96 |
+| momentum_chg_1vs60 | 0.0342 | 0.1230 | 0.96 |
 
 ### Screened Factors
 
-- momentum_simple_20: IC=0.0510
-- momentum_rel_ma20: IC=0.0373
-- momentum_simple_10: IC=0.0337
-- momentum_chg_5vs60: IC=0.0322
-- momentum_chg_3vs60: IC=0.0293
-- momentum_chg_1vs60: IC=0.0285
-- volatility_downside_5: IC=-0.0301
-- momentum_chg_3vs20: IC=-0.0322
-- liquidity_amount_ma5: IC=-0.0325
-- volatility_intraday_60: IC=-0.0362
+- momentum_simple_20: IC=0.0546
+- momentum_rel_ma20: IC=0.0430
+- momentum_rel_ma5: IC=0.0389
+- momentum_chg_5vs60: IC=0.0379
+- momentum_chg_1vs60: IC=0.0342
+- momentum_chg_3vs60: IC=0.0287
+- liquidity_amount_ma20: IC=-0.0296
+- liquidity_amount_ma5: IC=-0.0311
+- liquidity_amount_ma3: IC=-0.0331
+- momentum_chg_3vs20: IC=-0.0347
 
 ## 3. Backtest Results
 
-- **Backtest Period**: 2026-01-08 ~ 2026-05-07
+- **Backtest Period**: 2026-01-09 ~ 2026-05-08
 - **Backtest Days**: 76
 - **Commission**: 0.10%
 - **Stamp Tax**: 0.10%
@@ -50,10 +50,10 @@ Generated: 2026-05-07 22:46:02
 
 | Metric | Value |
 |--------|-------|
-| Total Return | -6.19% |
-| Annual Return | -19.09% |
-| Sharpe | -1.55 |
-| Max Drawdown | -0.00% |
+| Total Return | -6.92% |
+| Annual Return | -21.15% |
+| Sharpe | -1.74 |
+| Max Drawdown | -1338.41% |
 
 ## 4. Risk Notes
 
@@ -104,4 +104,4 @@ Pipeline completed successfully, verified system can run stably with real data.
 
 **Recommendation**: Increase sample size and extend time period before using for strategy development.
 
-Total time: 73.01s
+Total time: 42.41s

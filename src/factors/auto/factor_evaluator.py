@@ -20,6 +20,8 @@ import pandas as pd
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
+from .factor_candidate import FactorCandidate
+
 
 class FactorEvaluator:
     """
@@ -116,12 +118,17 @@ class FactorEvaluator:
             dates = factor_data.index.unique()
         
         ic_values = []
+        ic_dates = []
+        pearson_values = []
         
         for date in dates:
             try:
                 if isinstance(factor_data.index, pd.MultiIndex):
-                    factor_vals = factor_data.loc[date]
-                    return_vals = returns.loc[date]
+                    date_mask = factor_data.index.get_level_values(0) == date
+                    factor_vals = factor_data[date_mask].reset_index(level=0, drop=True)
+                    
+                    return_mask = returns.index.get_level_values(0) == date
+                    return_vals = returns[return_mask].reset_index(level=0, drop=True)
                 else:
                     factor_vals = factor_data[factor_data.index == date]
                     return_vals = returns[returns.index == date]
@@ -134,15 +141,23 @@ class FactorEvaluator:
                 factor_vals = factor_vals.dropna()
                 return_vals = return_vals.dropna()
                 
+                factor_vals = factor_vals[~factor_vals.index.duplicated(keep='first')]
+                return_vals = return_vals[~return_vals.index.duplicated(keep='first')]
+                
                 common = factor_vals.index.intersection(return_vals.index)
                 
                 if len(common) >= 10:
                     factor_rank = factor_vals.loc[common].rank(pct=True)
                     return_rank = return_vals.loc[common].rank(pct=True)
                     
-                    ic = np.corrcoef(factor_rank, return_rank)[0, 1]
+                    ic = np.corrcoef(factor_rank.values, return_rank.values)[0, 1]
                     if not np.isnan(ic):
                         ic_values.append(ic)
+                        ic_dates.append(date)
+                    
+                    pearson = np.corrcoef(factor_vals.loc[common].values, return_vals.loc[common].values)[0, 1]
+                    if not np.isnan(pearson):
+                        pearson_values.append(pearson)
             except Exception as e:
                 continue
 
@@ -152,7 +167,10 @@ class FactorEvaluator:
                 'std': 0.0,
                 'count': 0,
                 'positive_ratio': 0.0,
-                'timeseries': []
+                'timeseries': [],
+                'dates': [],
+                'pearson_mean': 0.0,
+                'pearson_std': 0.0
             }
         
         return {
@@ -160,7 +178,10 @@ class FactorEvaluator:
             'std': np.std(ic_values),
             'count': len(ic_values),
             'positive_ratio': np.mean([ic > 0 for ic in ic_values]),
-            'timeseries': ic_values
+            'timeseries': ic_values,
+            'dates': ic_dates,
+            'pearson_mean': abs(np.mean(pearson_values)) if pearson_values else 0.0,
+            'pearson_std': np.std(pearson_values) if pearson_values else 0.0
         }
     
     def calculate_icir(self, rank_ic_result: Dict[str, float]) -> float:
@@ -552,7 +573,7 @@ class FactorEvaluator:
     
     def evaluate_batch(
         self,
-        candidates: List['FactorCandidate'],
+        candidates: List[FactorCandidate],
         returns: pd.Series,
         existing_factors: Optional[Dict[str, pd.Series]] = None,
         industry_data: Optional[pd.Series] = None,

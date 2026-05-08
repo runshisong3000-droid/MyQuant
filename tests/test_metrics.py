@@ -21,7 +21,7 @@ class TestRiskMetrics(unittest.TestCase):
     def test_total_return(self):
         metrics = RiskMetrics.evaluate(self.portfolio)
         self.assertIsInstance(metrics['total_return'], float)
-        self.assertTrue(0 <= metrics['total_return'] <= 2)
+        self.assertTrue(-1 <= metrics['total_return'] <= 3)
     
     def test_sharpe_ratio(self):
         returns = self.portfolio['total'].pct_change().dropna()

@@ -27,7 +27,8 @@ class SequenceDataset:
         df: pd.DataFrame,
         lookback_window: int = 20,
         features: List[str] = None,
-        target_horizon: int = 1
+        target_horizon: int = 1,
+        normalize: bool = True
     ):
         if features is None:
             features = ['open', 'high', 'low', 'close', 'volume']
@@ -36,6 +37,9 @@ class SequenceDataset:
         self.lookback_window = lookback_window
         self.features = features
         self.target_horizon = target_horizon
+        self.normalize = normalize
+        self.feature_means = None
+        self.feature_stds = None
 
         self.df = self.df.sort_values(['stock', 'date']).reset_index(drop=True)
 
@@ -43,6 +47,9 @@ class SequenceDataset:
 
         self.stocks = self.df['stock'].unique()
         self.dates = sorted(self.df['date'].unique())
+
+        if self.normalize:
+            self._compute_normalization_stats()
 
         self.samples = self._build_samples()
 
@@ -52,6 +59,19 @@ class SequenceDataset:
         missing = set(required_cols) - set(self.df.columns)
         if missing:
             raise ValueError("Missing columns: {}".format(missing))
+
+    def _compute_normalization_stats(self):
+        """计算标准化统计量 (在训练集上)"""
+        all_features = self.df[self.features].values
+        self.feature_means = np.nanmean(all_features, axis=0)
+        self.feature_stds = np.nanstd(all_features, axis=0)
+        self.feature_stds[self.feature_stds == 0] = 1.0
+
+    def _normalize_features(self, X):
+        """标准化特征"""
+        if not self.normalize or self.feature_means is None:
+            return X
+        return (X - self.feature_means) / self.feature_stds
 
     def _build_samples(self) -> Tuple[np.ndarray, pd.DataFrame]:
         """
@@ -80,6 +100,8 @@ class SequenceDataset:
                 end_idx = i
 
                 X_sample = stock_features[start_idx:end_idx]
+                if self.normalize:
+                    X_sample = self._normalize_features(X_sample)
 
                 signal_date = stock_dates[end_idx - 1]
                 target_start_date = stock_dates[end_idx]

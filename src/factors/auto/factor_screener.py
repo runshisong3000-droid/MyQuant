@@ -71,12 +71,15 @@ class FactorScreener:
         """
         print(f"Screening {len(factors)} factors...")
         
+        from src.factors.auto.factor_evaluator import FactorEvaluator
+        evaluator = FactorEvaluator()
+        
         all_scores = []
         
         for name, factor_data in factors.items():
             try:
                 scores = self._calculate_factor_scores(
-                    name, factor_data, returns, market_cap, industry
+                    name, factor_data, returns, market_cap, industry, evaluator
                 )
                 all_scores.append(scores)
             except Exception as e:
@@ -121,7 +124,8 @@ class FactorScreener:
         factor_data: pd.Series,
         returns: pd.Series,
         market_cap: Optional[pd.Series],
-        industry: Optional[pd.Series]
+        industry: Optional[pd.Series],
+        evaluator: 'FactorEvaluator'
     ) -> Dict[str, float]:
         """计算单个因子的各项评分"""
         scores = {
@@ -136,15 +140,14 @@ class FactorScreener:
             'market_cap_neutral_ic': 0.0
         }
         
-        from src.factors.auto.factor_evaluator import FactorEvaluator
-        evaluator = FactorEvaluator()
-        
         try:
             eval_result = evaluator.evaluate_single(factor_data, returns, industry, market_cap)
             
             scores['rank_ic'] = abs(eval_result['rank_ic']['mean'])
             scores['icir'] = eval_result.get('icir', 0.0)
             scores['coverage'] = eval_result.get('coverage', 0.0)
+            
+            scores['importance'] = eval_result['rank_ic'].get('pearson_mean', 0.0)
             
             if 'industry_neutral' in eval_result:
                 scores['industry_neutral_ic'] = abs(eval_result['industry_neutral']['mean'])
@@ -160,12 +163,15 @@ class FactorScreener:
         except Exception as e:
             print(f"Error evaluating {name}: {e}")
         
-        scores['importance'] = self._calculate_importance(factor_data, returns)
-        
         return scores
     
     def _calculate_importance(self, factor_data: pd.Series, returns: pd.Series) -> float:
-        """计算因子重要性（基于与收益的相关性）"""
+        """
+        计算因子重要性（基于与收益的相关性）
+        
+        注意：此方法已弃用，现在直接从 FactorEvaluator.calculate_rank_ic 的结果中获取 pearson_mean
+        保留此方法仅用于向后兼容
+        """
         try:
             common = factor_data.dropna().index.intersection(returns.dropna().index)
             if len(common) > 100:

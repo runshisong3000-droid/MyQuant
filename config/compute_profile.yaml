@@ -1,99 +1,166 @@
-# MyQuant Compute Profile Configuration
-# 定义不同计算规模的配置参数
+# MyQuant 计算配置文件
 
 profiles:
-  # 学生笔记本模式 - 最小配置，用于快速验证
   student_laptop:
-    description: "Minimal config for quick validation on laptop"
-    # 数据参数
     stock_count: 20
     history_months: 6
-
-    # 公式因子参数
-    formula_factor_limit: 50
-
-    # Neural因子参数
-    neural_embedding_dim: 8
+    train_ratio: 0.7
+    val_ratio: 0.15
+    test_ratio: 0.15
     lookback_window: 20
+    formula_factor_limit: 100
+    neural_embedding_dim: 8
     epochs: 5
     batch_size: 64
     hidden_dim: 32
+    device: 'cpu'
+    purpose: "工程调试"
+    description: "最小配置，用于快速测试和调试 pipeline"
 
-    # 计算资源
-    device: cpu
-    use_gpu: false
-    use_llm_api: false
-
-    # 缓存设置
-    cache_dir: data/cache
-    use_cache: true
-
-    # 评估设置
-    min_stocks_per_date: 10
-    train_ratio: 0.6
-    val_ratio: 0.2
-    test_ratio: 0.2
-
-  # 轻量研究模式 - 中等配置，用于小规模研究
   research_lite:
-    description: "Medium config for small-scale research"
-    # 数据参数
     stock_count: 100
     history_months: 12
-
-    # 公式因子参数
-    formula_factor_limit: 100
-
-    # Neural因子参数
-    neural_embedding_dim: 8
+    train_ratio: 0.7
+    val_ratio: 0.15
+    test_ratio: 0.15
     lookback_window: 20
+    formula_factor_limit: 100
+    neural_embedding_dim: 8
     epochs: 5
     batch_size: 64
     hidden_dim: 32
+    device: 'cpu'
+    purpose: "小样本研究"
+    description: "当前默认配置，用于初步研究和验证"
 
-    # 计算资源
-    device: cpu
-    use_gpu: false
-    use_llm_api: false
-
-    # 缓存设置
-    cache_dir: data/cache
-    use_cache: true
-
-    # 评估设置
-    min_stocks_per_date: 10
+  research_medium_trial:
+    stock_count: 150
+    history_months: 18
     train_ratio: 0.6
     val_ratio: 0.2
     test_ratio: 0.2
+    lookback_window: 20
+    formula_factor_limit: 150
+    neural_embedding_dim: 8
+    epochs: 3
+    batch_size: 64
+    hidden_dim: 32
+    device: 'cpu'
+    purpose: "中等样本试跑"
+    description: "research_medium 的预演版本，验证系统承载能力"
 
-  # 中等研究模式 - 较大配置，用于更全面的研究
   research_medium:
-    description: "Larger config for comprehensive research"
-    # 数据参数
     stock_count: 300
     history_months: 24
-
-    # 公式因子参数
-    formula_factor_limit: 200
-
-    # Neural因子参数
-    neural_embedding_dim: 16
-    lookback_window: 30
-    epochs: 10
-    batch_size: 128
-    hidden_dim: 64
-
-    # 计算资源
-    device: cuda
-    use_gpu: true
-    use_llm_api: false
-
-    # 缓存设置
-    cache_dir: data/cache
-    use_cache: true
-
-    # 评估设置
-    min_stocks_per_date: 20
     train_ratio: 0.6
     val_ratio: 0.2
     test_ratio: 0.2
+    lookback_window: 20
+    formula_factor_limit: 200
+    neural_embedding_dim: 8
+    epochs: 3
+    batch_size: 128
+    hidden_dim: 64
+    device: 'cpu'
+    purpose: "初步样本外验证"
+    description: "扩展配置，用于更可靠的样本外验证"
+
+  research_large:
+    stock_count: 800
+    history_months: 60
+    train_ratio: 0.5
+    val_ratio: 0.25
+    test_ratio: 0.25
+    lookback_window: 30
+    formula_factor_limit: 500
+    neural_embedding_dim: 16
+    epochs: 20
+    batch_size: 256
+    hidden_dim: 128
+    device: 'cpu'
+    purpose: "更严肃的 AI 特征学习研究"
+    description: "大规模配置，支持深度学习模型训练"
+
+  research_full:
+    stock_count: 2000
+    history_months: 120
+    train_ratio: 0.5
+    val_ratio: 0.25
+    test_ratio: 0.25
+    lookback_window: 60
+    formula_factor_limit: 1000
+    neural_embedding_dim: 32
+    epochs: 50
+    batch_size: 512
+    hidden_dim: 256
+    device: 'cpu'
+    purpose: "接近实盘级研究"
+    description: "全市场配置，用于实盘前的最终验证"
+
+default: research_lite
+
+paths:
+  raw_data: "data/raw"
+  processed_data: "data/processed"
+  factors: "data/factors"
+  dashboard: "data/dashboard"
+  models: "models"
+  reports: "reports"
+  logs: "logs"
+
+backtest:
+  initial_capital: 1000000
+  transaction_cost: 0.001
+  stamp_tax: 0.001
+  slippage: 0.001
+  signal_lag: 1
+
+factor_evaluation:
+  rank_ic_threshold: 0.01
+  icir_threshold: 0.1
+  coverage_threshold: 0.8
+  turnover_threshold: 0.5
+
+neural:
+  batch_size: 256
+  epochs: 100
+  learning_rate: 0.001
+  embedding_dim: 8
+  encoder_types:
+    - mlp
+    - cnn
+    - transformer
+
+trading_constraints:
+  enable_st_filter: true
+  enable_suspended_filter: true
+  enable_limit_up_down_filter: true
+  enable_new_stock_filter: true
+  enable_liquidity_filter: true
+  enable_capacity_filter: true
+  min_listing_days: 60
+  min_daily_amount: 50000000
+  max_participation_rate: 0.05
+  default_limit_pct: 0.10
+  startup_board_limit_pct: 0.20
+  unknown_field_policy: WARN
+
+data_sources:
+  default: akshare
+  allow_tushare: true
+  tushare_token_env: TUSHARE_TOKEN
+  retry_times: 3
+  retry_sleep_seconds: 1
+  cache_expire_days: 7
+  min_success_ratio:
+    research_medium_trial: 0.7
+    research_medium: 0.7
+    research_large: 0.8
+    research_full: 0.8
+  min_absolute_stocks:
+    student_laptop: 10
+    research_lite: 50
+    research_medium_trial: 100
+    research_medium: 200
+    research_large: 500
+    research_full: 1500

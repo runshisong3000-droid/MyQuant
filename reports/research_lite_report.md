@@ -1,34 +1,23 @@
 # Research Lite Pipeline Report (Reliability Audit)
 
-Generated: 2026-05-08 00:23:21
+Generated: 2026-05-08 22:46:25
 
 ## 1. Data Overview
 
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
-| Stock count | 100 | 87 | OK |
-| History months | 12 | 12.0 | OK |
-| Date range | N/A | 20250513 to 20260507 | - |
-| Total rows | N/A | 21486 | - |
+| Stock count | 150 | 5 | FAIL |
+| History months | 18 | 18.0 | OK |
+| Date range | N/A | 20241114 to 20260508 | - |
+| Total rows | N/A | 1785 | - |
 
 ## 2. Formula Factors
 
-| Rank | Factor | RankIC | ICIR | RankIC Count |
-|------|--------|--------|------|--------------|
-| 1 | reversal_short_1 | 0.0374 | 0.2033 | 238 |
-| 2 | reversal_short_3 | 0.0305 | 0.1643 | 238 |
-| 3 | reversal_short_5 | 0.0287 | 0.1402 | 238 |
-| 4 | momentum_chg_1vs60 | 0.0144 | 0.0720 | 238 |
-| 5 | momentum_chg_3vs60 | 0.0143 | 0.0724 | 238 |
-| 6 | momentum_chg_5vs60 | 0.0140 | 0.0703 | 238 |
-| 7 | momentum_chg_1vs20 | 0.0102 | 0.0506 | 238 |
-| 8 | momentum_chg_3vs20 | 0.0075 | 0.0376 | 238 |
-| 9 | momentum_chg_1vs10 | 0.0059 | 0.0289 | 238 |
-| 10 | momentum_chg_5vs20 | 0.0045 | 0.0233 | 238 |
+**No formula factors successfully evaluated**
 
-- Total formula factors: 100
-- Successfully evaluated: 100
-- Failed: 0
+- Total formula factors: 102
+- Successfully evaluated: 0
+- Failed: 102
 
 ## 3. Neural Factors
 
@@ -54,14 +43,14 @@ Generated: 2026-05-08 00:23:21
 
 ## 6. Final Status
 
-**STATUS: OK** - Pipeline successful
+**STATUS: WARN** - Some data quality issues
 
 ## 7. Limitations
 
 - Leakage check status: OK
-- Stock count target vs actual: 100 vs 87
+- Stock count target vs actual: 150 vs 5
 - Date range sufficiency: OK
-- Formula factors success rate: 100.0%
+- Formula factors success rate: 0.0%
 - This is a research prototype - NOT FOR LIVE TRADING
 
-Total time: 115.50s
+Total time: 436.44s

@@ -1,0 +1,24 @@
+{"timestamp": "2026-05-07T15:23:37.041", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T15:23:37.042", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "MyQuant - 中国量化私募架构演示"}
+{"timestamp": "2026-05-07T15:23:37.043", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T15:23:37.044", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Testing Ranking Model..."}
+{"timestamp": "2026-05-07T15:23:37.241", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Ranking Model IC: -0.0178"}
+{"timestamp": "2026-05-07T15:23:37.245", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Generated ranks for 1500 samples"}
+{"timestamp": "2026-05-07T15:23:37.247", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "\nTesting Portfolio Optimizer..."}
+{"timestamp": "2026-05-07T15:23:37.279", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Expected Return: 0.0188"}
+{"timestamp": "2026-05-07T15:23:37.281", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Portfolio Risk: 0.0296"}
+{"timestamp": "2026-05-07T15:23:37.282", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Sharpe Ratio: 0.6352"}
+{"timestamp": "2026-05-07T15:23:37.283", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Number of positions: 2"}
+{"timestamp": "2026-05-07T15:23:37.285", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "\nTesting Risk Engine..."}
+{"timestamp": "2026-05-07T15:23:37.287", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Factor Risk: 0.0523"}
+{"timestamp": "2026-05-07T15:23:37.289", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Factor Exposures: [ 0.1964 -0.2668  0.0216]..."}
+{"timestamp": "2026-05-07T15:23:37.290", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Drawdown exceeded: False, Current DD: 0.0500"}
+{"timestamp": "2026-05-07T15:23:37.290", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "\nTesting Research Agent..."}
+{"timestamp": "2026-05-07T15:23:37.293", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Generated 10 factor formulas"}
+{"timestamp": "2026-05-07T15:23:37.294", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "  1. rolling_mean(close, 60)"}
+{"timestamp": "2026-05-07T15:23:37.296", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "  2. pe_ratio / rolling_mean(pe_ratio, 10)"}
+{"timestamp": "2026-05-07T15:23:37.296", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "  3. volume / rolling_mean(volume, 5)"}
+{"timestamp": "2026-05-07T15:23:37.299", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "Created 5 research hypotheses"}
+{"timestamp": "2026-05-07T15:23:37.300", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "============================================================"}
+{"timestamp": "2026-05-07T15:23:37.301", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "量化私募架构演示完成!"}
+{"timestamp": "2026-05-07T15:23:37.304", "level": "INFO", "module": "quant_private_demo", "run_id": null, "message": "============================================================"}
