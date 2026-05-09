@@ -39,24 +39,24 @@ An AI-powered quantitative trading and research platform for systematic investme
 ┌─────────────────────────────────────────────────────────────────┐
 │                    MyQuant Architecture                         │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 1: Intelligence (AI Signal Layer)                       │
-│  • ML Stock Picking (XGBoost/LightGBM)                        │
-│  • Feature Engineering (38+ Technical Factors)                │
-│  • Market Regime Detection                                    │
+│  Layer 1: Intelligence (AI Signal Layer)                        │
+│  • ML Stock Picking (XGBoost/LightGBM)                          │
+│  • Feature Engineering (38+ Technical Factors)                  │
+│  • Market Regime Detection                                      │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 2: Orchestrator                                        │
-│  • Signal → Portfolio → Risk Control → Execution Pipeline     │
+│  Layer 2: Orchestrator                                          │
+│  • Signal → Portfolio → Risk Control → Execution Pipeline       │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 3: Core Engine                                         │
-│  • Backtesting (Event-driven + Vectorized)                    │
-│  • Paper Trading Simulation                                   │
+│  Layer 3: Core Engine                                           │
+│  • Backtesting (Event-driven + Vectorized)                      │
+│  • Paper Trading Simulation                                     │
 ├─────────────────────────────────────────────────────────────────┤
-│  Layer 4: Control + Execution                                 │
-│  • Risk Guardian (Stop-loss, Position Limits)                 │
-│  • Trade Journal and Attribution Analysis                     │
+│  Layer 4: Control + Execution                                   │
+│  • Risk Guardian (Stop-loss, Position Limits)                   │
+│  • Trade Journal and Attribution Analysis                       │
 ├─────────────────────────────────────────────────────────────────┤
-│  Data Layer (Data Lake)                                       │
-│  • Price Data, Financials, Alternative Data                  │
+│  Data Layer (Data Lake)                                         │
+│  • Price Data, Financials, Alternative Data                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
