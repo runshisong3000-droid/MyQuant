@@ -30,6 +30,25 @@ class DataLoader:
         """获取当前 profile"""
         return self.profile_name
     
+    def get_profile_config(self, profile_name=None):
+        """获取 profile 配置"""
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'compute_profile.yaml')
+        if not os.path.exists(config_path):
+            return None
+        
+        try:
+            import yaml
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            
+            profiles = config.get('profiles', {})
+            if profile_name is None:
+                profile_name = self.profile_name
+            
+            return profiles.get(profile_name)
+        except Exception:
+            return None
+    
     def get_profile_dashboard_dir(self):
         """获取 profile-specific dashboard 目录"""
         return os.path.join(self.dashboard_dir, 'profiles', self.profile_name)

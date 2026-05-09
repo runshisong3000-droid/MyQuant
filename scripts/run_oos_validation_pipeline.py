@@ -34,9 +34,12 @@ import yaml
 parser = argparse.ArgumentParser(description='OOS Validation Pipeline')
 parser.add_argument('--profile', default='research_lite', 
                     help='Profile name from compute_profile.yaml')
+parser.add_argument('--force', action='store_true',
+                    help='Force re-run even if artifacts exist')
 args = parser.parse_args()
 
 profile_name = args.profile
+force_run = args.force
 
 print("=" * 80)
 print("MyQuant OOS Validation Pipeline (Methodology Audit Fix)")

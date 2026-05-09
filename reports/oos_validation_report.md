@@ -12,14 +12,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Formula factor panel date range | 2025-05-13 ~ 2026-05-07 |
-| Neural factor panel date range | 2025-05-26 ~ 2026-05-06 |
-| Common date count | 229 |
-| Common stock count | 87 |
-| Test trading days | 46 |
-| Test stock count | 87 |
+| Formula factor panel date range | 2024-05-20 ~ 2026-05-08 |
+| Neural factor panel date range | 2024-06-17 ~ 2026-05-06 |
+| Common date count | 456 |
+| Common stock count | 300 |
+| Test trading days | 92 |
+| Test stock count | 300 |
 | Sample adequacy status | **PASS** |
-| Dropped rows | 39744 |
+| Dropped rows | 279360 |
 | Reason for dropped samples | Inner join alignment on (date, stock) |
 
 
@@ -46,9 +46,9 @@
 
 ### 3.3 Sample Alignment
 
-- Common dates: 229
-- Common stocks: 87
-- Test samples per feature set: 3993
+- Common dates: 456
+- Common stocks: 300
+- Test samples per feature set: 27528
 
 ### 3.4 Methodology Issues
 
@@ -65,11 +65,11 @@
 
 | Period | Start Date | End Date | Trading Days |
 |--------|------------|----------|--------------|
-| Train | 2025-05-26 | 2025-12-11 | 137 |
-| Validation | 2025-12-12 | 2026-02-25 | 46 |
-| Test | 2026-02-26 | 2026-05-06 | 46 |
+| Train | 2024-06-17 | 2025-07-29 | 273 |
+| Validation | 2025-07-30 | 2025-12-11 | 91 |
+| Test | 2025-12-12 | 2026-05-06 | 92 |
 
-**Total Stocks:** 87
+**Total Stocks:** 300
 
 ---
 
@@ -77,9 +77,9 @@
 
 | Feature Set | Feature Count | Sample Count | Description |
 |-------------|---------------|--------------|-------------|
-| formula_only | 5 | 3993 | 仅使用公式因子 |
-| neural_only | 8 | 3909 | 仅使用神经因子 |
-| formula_plus_neural | 13 | 3909 | 公式因子 + 神经因子 |
+| formula_only | 135 | 27528 | 仅使用公式因子 |
+| neural_only | 8 | 27526 | 仅使用神经因子 |
+| formula_plus_neural | 143 | 27526 | 公式因子 + 神经因子 |
 
 ---
 
@@ -87,9 +87,9 @@
 
 | Feature Set | Test RankIC | Test ICIR | Coverage |
 |-------------|-------------|-----------|----------|
-| formula_only | -0.0060 | 0.0590 | 100.0% |
-| neural_only | -0.0098 | 0.0590 | 100.0% |
-| formula_plus_neural | -0.0140 | 0.1223 | 100.0% |
+| formula_only | -0.0094 | 0.0604 | 100.0% |
+| neural_only | 0.0004 | 0.0040 | 100.0% |
+| formula_plus_neural | -0.0096 | 0.0613 | 100.0% |
 
 ---
 
@@ -97,9 +97,9 @@
 
 | Feature Set | Total Return | Annual Return | Sharpe | Max Drawdown | Turnover |
 |-------------|--------------|---------------|--------|--------------|----------|
-| formula_only | 0.42% | 2.33% | 1.61 | 0.64% | 0.1000 |
-| neural_only | 0.55% | 3.07% | 1.40 | 0.88% | 0.1000 |
-| formula_plus_neural | 0.67% | 3.72% | 1.85 | 0.35% | 0.1000 |
+| formula_only | 0.95% | 2.62% | 1.45 | 1.31% | 0.1000 |
+| neural_only | -0.00% | -0.01% | 0.00 | 1.47% | 0.1000 |
+| formula_plus_neural | 1.16% | 3.20% | 1.75 | 1.17% | 0.1000 |
 
 ---
 
@@ -107,15 +107,15 @@
 
 ### 8.1 neural_only 是否有效？
 
--0.0098 的 RankIC 表明神经因子预测能力有限。
+0.0004 的 RankIC 表明神经因子预测能力有限。
 
 
 ### 8.2 formula_plus_neural 是否优于 formula_only？
 
-formula_only RankIC: -0.0060
-formula_plus_neural RankIC: -0.0140
+formula_only RankIC: -0.0094
+formula_plus_neural RankIC: -0.0096
 
-差异: -0.0080
+差异: -0.0001
 
 formula_plus_neural 未明显优于 formula_only，神经因子未提供显著增量信息。
 
@@ -133,7 +133,7 @@ formula_plus_neural 未明显优于 formula_only，神经因子未提供显著�
 
 ## 9. Limitations
 
-- 当前样本仍有限（87 只股票，46 个测试日）
+- 当前样本仍有限（300 只股票，92 个测试日）
 - 交易约束仍需完善（停牌、涨跌停、ST 过滤）
 - Paper Trading 尚未完成
 - 实盘不可用
@@ -141,7 +141,7 @@ formula_plus_neural 未明显优于 formula_only，神经因子未提供显著�
 
 ---
 
-**Generated At:** 2026-05-08T21:38:35.216015
+**Generated At:** 2026-05-09T21:28:59.360790
 **Pipeline:** oos_validation_pipeline
 **Methodology Status:** PASS
 **Can Use For Live Trading:** false

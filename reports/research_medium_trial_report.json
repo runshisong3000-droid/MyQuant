@@ -1,0 +1,66 @@
+{
+  "profile": "research_medium_trial",
+  "profile_config": {
+    "stock_count": 150,
+    "history_months": 18,
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "lookback_window": 20,
+    "formula_factor_limit": 150,
+    "neural_embedding_dim": 8,
+    "epochs": 3,
+    "batch_size": 64,
+    "hidden_dim": 32,
+    "device": "cpu",
+    "purpose": "中等样本试跑",
+    "description": "research_medium 的预演版本，验证系统承载能力"
+  },
+  "run_at": "2026-05-09T18:17:44.787302",
+  "total_time": 65.13891267776489,
+  "steps_skipped": 2,
+  "steps": [
+    {
+      "name": "Research Factor Pipeline",
+      "script": "scripts/run_research_lite_pipeline.py",
+      "success": true,
+      "elapsed": 0,
+      "stdout": "",
+      "stderr": "",
+      "required": true,
+      "skipped": true
+    },
+    {
+      "name": "Neural Factor Pipeline",
+      "script": "scripts/run_neural_factor_pipeline.py",
+      "success": true,
+      "elapsed": 0,
+      "stdout": "",
+      "stderr": "",
+      "required": true,
+      "skipped": true
+    },
+    {
+      "name": "OOS Validation Pipeline",
+      "script": "scripts/run_oos_validation_pipeline.py",
+      "success": true,
+      "elapsed": 46.0941686630249,
+      "stdout": "================================================================================\nMyQuant OOS Validation Pipeline (Methodology Audit Fix)\nProfile: research_medium_trial\n================================================================================\n\n================================================================================\n[Step 1] Load Data\n================================================================================\n  - Loaded neural_factors: data/dashboard/profiles/research_medium_trial\\neural_factors.parquet ((50143, 13))\n  - Loaded formula_factors panel: data/dashboard/profiles/research_medium_trial\\formula_factors.parquet ((53293, 110))\n  - Loaded factor_summary: data/dashboard/profiles/research_medium_trial\\factor_summary.parquet ((108, 7))\n  - Loaded prices and target: data/processed/profiles/research_medium_trial\\prices.parquet\n  - [OK] Data loaded in 0.34s\n\n================================================================================\n[Step 2] Methodology Audit\n================================================================================\n  - Checking methodology integrity...\n  - Formula factor count: 108\n  - Neural factor count: 8\n  - Formula dates: 356\n  - Neural dates: 335\n  - Common dates: 335\n  - Formula stocks: 150\n  - Neural stocks: 150\n  - Common stocks: 150\n  - [OK] Methodology audit passed\n  - [OK] Methodology audit completed in 0.39s\n\n================================================================================\n[Step 3] Time Split (Train/Validation/Test)\n================================================================================\n  - Train period: 2024-12-12 ~ 2025-10-14 (201 days)\n  - Validation period: 2025-10-15 ~ 2026-01-19 (67 days)\n  - Test period: 2026-01-20 ~ 2026-05-06 (67 days)\n  - Common stock count: 150\n  - [OK] Time split completed in 0.00s\n\n================================================================================\n[Step 3.1] Sample Adequacy Check\n================================================================================\n  - Sample Adequacy Status: PASS\n  - [OK] Sample adequacy check completed in 0.41s\n\n================================================================================\n[Step 4] Feature Set Comparison\n================================================================================\n  - Formula test samples: 10031\n  - Neural test samples: 10029\n  - formula_only: RankIC=-0.0241, samples=10030, features=108\n  - neural_only: RankIC=0.0117, samples=10029, features=8\n  - formula_plus_neural: RankIC=-0.0250, samples=10029, features=116\n  - [OK] Feature set comparison completed in 2.95s\n\n================================================================================\n[Step 5] Calculate Backtest Results\n================================================================================\n  - formula_only: Sharpe=-1.47, TotalReturn=-0.79%\n  - neural_only: Sharpe=1.12, TotalReturn=0.54%\n  - formula_plus_neural: Sharpe=-1.20, TotalReturn=-0.64%\n  - [OK] Backtest completed in 0.35s\n\n================================================================================\n[Step 6] Save Artifacts\n================================================================================\n  - Saved: oos_split_info.json\n  - Saved: oos_feature_comparison.parquet\n  - Saved: oos_rankic_series.parquet\n  - Saved: oos_backtest_summary.parquet\n  - Saved: oos_equity_curves.parquet\n  - [OK] Artifacts saved in 0.09s\n\n================================================================================\n[Step 7] Update Dashboard Manifest\n================================================================================\n  - [OK] Manifest updated in 0.05s\n\n================================================================================\n[Step 8] Generate OOS Report\n================================================================================\n  - Saved: reports/oos_validation_report.md\n  - [OK] Report generated in 0.00s\n\n================================================================================\n[Final Summary]\n================================================================================\n\nOOS Validation Pipeline completed!\nTotal runtime: 42.27 seconds\n\nArtifacts generated:\n  - data/dashboard/oos_split_info.json\n  - data/dashboard/oos_feature_comparison.parquet\n  - data/dashboard/oos_rankic_series.parquet\n  - data/dashboard/oos_backtest_summary.parquet\n  - data/dashboard/oos_equity_curves.parquet\n  - reports/oos_validation_report.md\n\nMethodology Status: PASS\n\nFeature Set Comparison:\n  - formula_only: RankIC=-0.0241\n  - neural_only: RankIC=0.0117\n  - formula_plus_neural: RankIC=-0.0250\n\n[NOTE] Current results are for research only and cannot be used for live trading.\ncan_use_for_live_trading: false\n",
+      "stderr": "",
+      "required": true,
+      "skipped": false
+    },
+    {
+      "name": "Trading Constraints Pipeline",
+      "script": "scripts/run_trading_constraints_pipeline.py",
+      "success": true,
+      "elapsed": 16.784623622894287,
+      "stdout": "============================================================\nMyQuant Trading Constraints Pipeline\nProfile: research_medium_trial\n============================================================\n\n[Step 1] Load prices...\n  - Loaded: data/processed/profiles/research_medium_trial\\prices.parquet (shape: (53293, 24))\n  - Date range: 2024-11-15 ~ 2026-05-08\n  - Stock count: 150\n  - [OK] Time: 0.13s\n\n[Step 2] Load OOS feature comparison...\n  - Loaded: data/dashboard/oos_feature_comparison.parquet\n  - [OK] Time: 0.01s\n\n[Step 3] Build candidate trading list...\n  - Total candidates: 53293\n  - Unique dates: 356\n  - Unique stocks: 150\n  - [OK] Time: 0.01s\n\n[Step 4] Run TradingConstraintChecker...\n  - Configuration loaded\n  - ST filter enabled: True\n  - Suspended filter enabled: True\n  - Limit up/down filter enabled: True\n  - New stock filter enabled: True\n  - Liquidity filter enabled: True\n  - Capacity filter enabled: True\n  - [OK] Time: 12.63s\n\n[Step 5] Generate tradable_mask...\n  - Generated tradable_mask (shape: (53293, 12))\n  - Total candidates: 53293\n  - Can buy: 0 (0.0%)\n  - Can sell: 53006 (99.5%)\n  - Filtered: 53293 (100.0%)\n  - [OK] Time: 0.10s\n\n[Step 6] Run Constrained Backtest...\n[Constrained Backtest] Generating simple backtest results...\n[Constrained Backtest] Simple backtest generated: 356 days\n  - Total Return: 0.17%\n  - Annual Return: 0.12%\n  - Sharpe Ratio: 0.00\n  - Max Drawdown: -2.67%\n  - [OK] Time: 0.56s\n\n[Step 7] Save artifacts...\n  - Saved: trading_constraint_summary.parquet\n  - Saved: tradable_mask.parquet\n[Constrained Backtest] Results saved to data/dashboard/profiles/research_medium_trial\n  - Saved: constrained_backtest_summary.json\n  - Saved: constrained_equity_curve.parquet\n  - Saved: constrained_drawdown_curve.parquet\n  - Saved: trading_constraint_report.json\n  - [OK] Time: 0.46s\n\n[Step 8] Update dashboard_manifest...\n  - [OK] Time: 0.08s\n\n[Step 9] Generate Trading Constraints Report...\n  - Saved: reports/trading_constraints_report.md\n  - [OK] Time: 0.00s\n\n============================================================\n[Final Summary]\n============================================================\n\nTrading Constraints Pipeline completed!\nTotal runtime: 13.99 seconds\n\nArtifacts generated:\n  - data/dashboard/trading_constraint_summary.parquet\n  - data/dashboard/tradable_mask.parquet\n  - data/dashboard/trading_constraint_report.json\n  - data/dashboard/constrained_backtest_summary.json\n  - data/dashboard/constrained_equity_curve.parquet\n  - data/dashboard/constrained_drawdown_curve.parquet\n  - reports/trading_constraints_report.md\n\nData Availability Status:\n  - st_field: WARN\n  - suspended_field: APPROXIMATE\n  - limit_up_down_field: APPROXIMATE\n  - listing_date_field: WARN\n  - amount_field: OK\n\nConstraint Summary:\n  - Total candidates: 53293\n  - Can buy: 0\n  - Can sell: 53006\n  - Filtered: 53293\n\n[NOTE] Current results are for research only and cannot be used for live trading.\ncan_use_for_live_trading: false\n",
+      "stderr": "",
+      "required": true,
+      "skipped": false
+    }
+  ],
+  "success": true,
+  "can_use_for_live_trading": false
+}

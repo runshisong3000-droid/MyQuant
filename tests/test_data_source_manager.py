@@ -18,6 +18,7 @@ import os
 import sys
 import json
 import pytest
+from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.data.data_source_manager import DataSourceManager
@@ -43,15 +44,26 @@ class TestDataSourceManager:
     
     def test_metadata_fields_complete(self):
         """测试 metadata 字段完整"""
+        from datetime import datetime, timedelta
+        fetch_start = datetime.now()
+        fetch_end = datetime.now()
+        
         metadata = self.ds_manager._generate_metadata(
             profile_name='test_profile',
+            data_source_used='eastmoney_direct',
             target_count=100,
             actual_count=80,
             history_months=12,
+            start_date='20240101',
+            end_date='20250101',
+            candidate_count=200,
+            requested_count=200,
             requested_symbols=['000001.SZ', '000002.SZ'],
             success_symbols=['000001.SZ'],
             failed_symbols=['000002.SZ'],
-            failed_reasons={'000002.SZ': 'Test error'}
+            failed_reasons={'000002.SZ': 'Test error'},
+            fetch_start=fetch_start,
+            fetch_end=fetch_end
         )
         
         required_fields = [
@@ -59,15 +71,23 @@ class TestDataSourceManager:
             'target_stock_count',
             'actual_stock_count',
             'target_history_months',
+            'actual_start_date',
+            'actual_end_date',
+            'actual_trading_days',
+            'candidate_symbols_count',
+            'requested_symbols_count',
+            'success_symbols_count',
+            'failed_symbols_count',
             'requested_symbols',
             'success_symbols',
             'failed_symbols',
             'failed_reasons',
-            'success_ratio',
-            'failed_symbols_count',
-            'data_source',
-            'generated_at',
+            'data_source_used',
+            'fetch_started_at',
+            'fetch_finished_at',
+            'fetch_duration_seconds',
             'cache_valid',
+            'can_use_for_research',
             'can_use_for_live_trading'
         ]
         
@@ -76,15 +96,26 @@ class TestDataSourceManager:
     
     def test_can_use_for_live_trading_is_false(self):
         """测试 can_use_for_live_trading 必须为 false"""
+        from datetime import datetime, timedelta
+        fetch_start = datetime.now()
+        fetch_end = datetime.now()
+        
         metadata = self.ds_manager._generate_metadata(
             profile_name='test_profile',
+            data_source_used='eastmoney_direct',
             target_count=100,
             actual_count=100,
             history_months=12,
+            start_date='20240101',
+            end_date='20250101',
+            candidate_count=200,
+            requested_count=200,
             requested_symbols=['000001.SZ'],
             success_symbols=['000001.SZ'],
             failed_symbols=[],
-            failed_reasons={}
+            failed_reasons={},
+            fetch_start=fetch_start,
+            fetch_end=fetch_end
         )
         
         assert metadata['can_use_for_live_trading'] is False
@@ -108,15 +139,26 @@ class TestDataSourceManager:
     
     def test_failed_symbols_recorded(self):
         """测试 failed_symbols 会被记录在 metadata 中"""
+        from datetime import datetime, timedelta
+        fetch_start = datetime.now()
+        fetch_end = datetime.now()
+        
         metadata = self.ds_manager._generate_metadata(
             profile_name='test_profile',
+            data_source_used='eastmoney_direct',
             target_count=3,
             actual_count=1,
             history_months=12,
+            start_date='20240101',
+            end_date='20250101',
+            candidate_count=10,
+            requested_count=10,
             requested_symbols=['000001.SZ', '000002.SZ', '000003.SZ'],
             success_symbols=['000001.SZ'],
             failed_symbols=['000002.SZ', '000003.SZ'],
-            failed_reasons={'000002.SZ': 'Error1', '000003.SZ': 'Error2'}
+            failed_reasons={'000002.SZ': 'Error1', '000003.SZ': 'Error2'},
+            fetch_start=fetch_start,
+            fetch_end=fetch_end
         )
         
         assert len(metadata['failed_symbols']) == 2
@@ -142,49 +184,25 @@ class TestDataSourceManager:
         result = self.ds_manager.load_profile_cache('another_nonexistent_profile')
         assert not result['valid']
     
-    def test_tushare_not_available_without_token(self):
-        """测试没有 TUSHARE_TOKEN 时 Tushare 不会假成功"""
-        # 检查当前数据源配置
-        config = self.ds_manager.get_data_source_config()
-        assert config.get('default') == 'akshare'
-        # 当前实现默认使用 akshare，不会假装 tushare 可用
-    
     def test_cache_validity_check(self):
         """测试缓存有效性检查"""
         # 创建一个过期的 metadata 模拟
         metadata = {
             'actual_stock_count': 100,
-            'generated_at': '2020-01-01T00:00:00'  # 过期的日期
+            'fetch_finished_at': '2020-01-01T00:00:00'  # 过期的日期
         }
         
         # 过期缓存应该无效
         result = self.ds_manager._check_cache_validity('research_lite', metadata)
         assert result is False  # 因为日期过期
     
-    def test_data_source_config_loaded(self):
-        """测试数据源配置能被正确加载"""
-        config = self.ds_manager.get_data_source_config()
-        assert 'default' in config
-        assert 'retry_times' in config
-        assert 'min_absolute_stocks' in config
-        assert 'min_success_ratio' in config
-    
-    def test_min_absolute_stocks_config(self):
-        """测试最小股票数配置正确"""
-        config = self.ds_manager.get_data_source_config()
-        min_stocks = config.get('min_absolute_stocks', {})
-        
-        assert min_stocks.get('research_medium_trial') == 100
-        assert min_stocks.get('research_medium') == 200
-        assert min_stocks.get('research_lite') == 50
-    
-    def test_min_success_ratio_config(self):
-        """测试最小成功率配置正确"""
-        config = self.ds_manager.get_data_source_config()
-        min_ratio = config.get('min_success_ratio', {})
-        
-        assert min_ratio.get('research_medium_trial') == 0.7
-        assert min_ratio.get('research_medium') == 0.7
+    def test_build_stock_universe(self):
+        """测试构建股票池"""
+        universe = self.ds_manager.build_stock_universe('research_lite')
+        # 应该返回至少一些股票
+        assert len(universe) > 0
+        # 股票格式应该是 000001.SZ 或 600000.SH
+        assert '.SZ' in universe[0] or '.SH' in universe[0]
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 {
   "profile": "research_medium_trial",
   "dry_run": true,
-  "run_at": "2026-05-08T23:19:22.635365",
+  "run_at": "2026-05-09T14:18:36.494241",
   "checks": [
     {
       "check": "Profile exists",
@@ -37,7 +37,15 @@
     },
     {
       "check": "Price metadata exists",
-      "status": "WARN"
+      "status": "OK"
+    },
+    {
+      "check": "Metadata fields complete",
+      "status": "OK"
+    },
+    {
+      "check": "Stock count threshold (100)",
+      "status": "OK"
     },
     {
       "check": "Artifact isolation for formula_factors.parquet",

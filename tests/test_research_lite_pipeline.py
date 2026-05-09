@@ -168,14 +168,13 @@ class TestPipelineStructure:
             content = f.read()
 
         required_steps = [
-            'Load Configuration',
-            'Load or Fetch Data',
-            'Data Preparation',
-            'Generate Formula Factors',
-            'Generate Neural Factors',
-            'Evaluate Formula Factors',
-            'Evaluate Neural Factors',
-            'Generate Reliability Audit Report'
+            'Load configuration',
+            'Fetch or load price data',
+            'Prepare features and labels',
+            'Generate formula factors',
+            'Generate neural factors',
+            'Evaluate formula factors',
+            'Save outputs'
         ]
 
         for step in required_steps:

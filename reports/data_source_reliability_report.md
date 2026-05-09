@@ -1,44 +1,41 @@
 # Data Source Reliability Report
 
-## Profile: research_medium_trial
+## Profile: research_medium
 
-## 1. Data Source Information
+## 1. Executive Summary
 
-| Item | Value |
-|------|-------|
-| Data Source | akshare |
-| Generated At | 2026-05-08T12:00:00 |
-| Can Use for Live Trading | false |
+**Status: OK**
 
-## 2. Stock Count Analysis
+数据可以用于研究
+
+## 2. Data Source Information
 
 | Item | Value |
 |------|-------|
-| Target Stock Count | 150 |
-| Actual Stock Count | 0 |
-| Success Ratio | 0.00% |
-| Failed Symbols | 150 |
+| Data Source | tushare |
+| Generated At | 2026-05-09T19:11:25.069564 |
+| Can Use For Research | True |
+| Can Use For Live Trading | NO |
 
-## 3. Top 10 Failed Reasons
+## 3. Stock Count Analysis
 
-- ProxyError: 150 times
+| Item | Value |
+|------|-------|
+| Target Stock Count | 300 |
+| Actual Stock Count | 300 |
+| Success Ratio | 100.00% |
+| Failed Symbols | 0 |
 
-## 4. Cache Status
+## 4. Top 10 Failed Reasons
 
-- Cache Status: INVALID
-- Fallback Used: false
-- Simulated Data Used: false
+- None
 
-## 5. Recommendation
+## 5. Cache Status
 
-**Need at least 100 stocks**
+- Cache Status: VALID
+- Fallback Used: False
+- Simulated Data Used: False
 
-### Can Run Research Medium Trial: false
+## 6. Recommendation
 
-## 6. Important Notes
-
-⚠️ **This is a research prototype only. NOT FOR LIVE TRADING.**
-
-## 7. Root Cause
-
-网络代理问题导致无法连接到 AkShare 数据源。请检查网络设置或使用其他数据源。
+✅ Data is sufficient for research

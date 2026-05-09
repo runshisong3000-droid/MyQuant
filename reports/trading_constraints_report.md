@@ -1,6 +1,6 @@
 # Trading Constraints Report
 
-Generated: 2026-05-08 22:14:12
+Generated: 2026-05-09 21:29:22
 
 ---
 
@@ -39,10 +39,10 @@ Generated: 2026-05-08 22:14:12
 
 ### 4.1 Daily Statistics
 
-- Total dates: 239
-- Average daily candidates: 90
-- Average daily tradable: 89
-- Average daily filtered: 1
+- Total dates: 477
+- Average daily candidates: 299
+- Average daily tradable: 0
+- Average daily filtered: 305
 
 ### 4.2 Filter Reasons (Total)
 
@@ -50,10 +50,10 @@ Generated: 2026-05-08 22:14:12
 |---------------|-------|
 | ST 股票 | 0 |
 | 停牌 | 0 |
-| 涨停 | 125 |
-| 跌停 | 15 |
+| 涨停 | 2663 |
+| 跌停 | 871 |
 | 新股 | 0 |
-| 流动性不足 | 194 |
+| 流动性不足 | 142830 |
 | 容量不足 | 0 |
 
 ---
@@ -64,9 +64,9 @@ Generated: 2026-05-08 22:14:12
 
 | Metric | Value |
 |--------|-------|
-| Total Return | -0.24% |
-| Annual Return | -0.25% |
-| Sharpe Ratio | -0.01 |
+| Total Return | 0.47% |
+| Annual Return | 0.25% |
+| Sharpe Ratio | 0.01 |
 | Max Drawdown | -2.67% |
 | Turnover | 0.2500 |
 
@@ -97,6 +97,6 @@ Generated: 2026-05-08 22:14:12
 
 ---
 
-**Generated At:** 2026-05-08T22:14:12.480471
+**Generated At:** 2026-05-09T21:29:22.304820
 **Pipeline:** trading_constraints_pipeline
 **Can Use For Live Trading:** false

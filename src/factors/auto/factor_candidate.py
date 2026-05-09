@@ -282,3 +282,35 @@ class FactorRegistry:
         
         with open(self.registry_path, "w") as f:
             json.dump(self.registry, f, indent=2)
+
+
+def generate_formula_factors(price_data: pd.DataFrame, limit: int = 100) -> Dict[str, pd.Series]:
+    """
+    生成公式因子（批量生成候选因子）
+    
+    Args:
+        price_data: 价格数据（包含 open, high, low, close, volume, amount 等）
+        limit: 返回因子数量限制
+        
+    Returns:
+        因子字典 {factor_name: factor_series}
+    """
+    from src.factors.auto.enhanced_generator import EnhancedFactorGenerator
+    
+    # 按日期排序
+    price_data = price_data.sort_values(['date', 'stock'])
+    
+    # 创建日期-股票索引
+    if 'date' in price_data.columns and 'stock' in price_data.columns:
+        price_data = price_data.set_index(['date', 'stock'])
+    
+    generator = EnhancedFactorGenerator()
+    
+    # 使用整个数据集生成因子（按索引分组处理）
+    factors = generator.generate_all_factors(price_data, generate_neutral=False)
+    
+    # 限制因子数量
+    if limit and len(factors) > limit:
+        factors = dict(list(factors.items())[:limit])
+    
+    return factors

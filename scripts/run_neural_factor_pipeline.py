@@ -39,9 +39,12 @@ import yaml
 parser = argparse.ArgumentParser(description='Neural Factor Pipeline')
 parser.add_argument('--profile', default='research_lite', 
                     help='Profile name from compute_profile.yaml')
+parser.add_argument('--force', action='store_true',
+                    help='Force re-run even if artifacts exist')
 args = parser.parse_args()
 
 profile_name = args.profile
+force_run = args.force
 
 print("=" * 60)
 print("MyQuant Neural Factor Pipeline")
@@ -377,7 +380,14 @@ metadata_dict = {
     'validation_end': meta_val['signal_date'].max() if len(meta_val) > 0 else None,
     'test_start': meta_test['signal_date'].min() if len(meta_test) > 0 else None,
     'test_end': meta_test['signal_date'].max() if len(meta_test) > 0 else None,
-    'leakage_check_status': leakage_results.get('overall_status', 'UNKNOWN')
+    'leakage_check_status': leakage_results.get('overall_status', 'UNKNOWN'),
+    'model_type': 'SequenceAutoEncoder',
+    'encoder_type': 'MLP',
+    'lookback_window': LOOKBACK_WINDOW,
+    'embedding_dim': EMBEDDING_DIM,
+    'hidden_dim': HIDDEN_DIM,
+    'epochs': EPOCHS,
+    'batch_size': BATCH_SIZE
 }
 import json
 neural_factor_metadata_path = os.path.join(DASHBOARD_DIR, 'neural_factor_metadata.json')
@@ -529,8 +539,8 @@ report_lines.append("")
 report_lines.append("## 3. Data Overview")
 report_lines.append("")
 report_lines.append("- **Data Source**: AkShare")
-report_lines.append("- **Stock Count**: {}".format(fetch_success))
-report_lines.append("- **Time Range**: {} ~ {}".format(START_DATE, END_DATE))
+report_lines.append("- **Stock Count**: {}".format(price_data['stock'].nunique()))
+report_lines.append("- **Time Range**: {} ~ {}".format(price_data['date'].min(), price_data['date'].max()))
 report_lines.append("- **Raw Data Shape**: {}".format(price_data.shape))
 report_lines.append("- **Sequence Sample Shape**: X={}, metadata={}".format(X.shape, metadata.shape))
 report_lines.append("- **Raw Features**: {}".format(RAW_FEATURES))
@@ -611,7 +621,7 @@ for _, row in eval_summary.head(5).iterrows():
 report_lines.append("")
 report_lines.append("## 10. Limitations")
 report_lines.append("")
-report_lines.append("- 样本只有 {} 只股票".format(fetch_success))
+report_lines.append("- 样本只有 {} 只股票".format(price_data['stock'].nunique()))
 report_lines.append("- 时间只有约 6 个月")
 report_lines.append("- 停牌/涨跌停过滤仍未完善")
 report_lines.append("- Neural factor 不能直接实盘")

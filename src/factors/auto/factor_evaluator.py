@@ -17,6 +17,9 @@
 
 import numpy as np
 import pandas as pd
+import os
+import json
+import time
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
@@ -41,11 +44,37 @@ class FactorEvaluator:
     11. 样本内/样本外验证
     """
 
-    def __init__(self):
+    def __init__(self, cache_dir: str = None):
         self.leakage_keywords = [
             'future', 'target', 'label', 'return_forward', 'shift_-', 'lead_',
             'next_', 'pred_', 'forecast', 'expected', 'gt_', 'label_'
         ]
+        self.cache_dir = cache_dir
+        self.eval_cache = {}
+        self._load_cache()
+    
+    def _load_cache(self):
+        """加载评估缓存"""
+        if self.cache_dir and os.path.exists(self.cache_dir):
+            cache_path = os.path.join(self.cache_dir, 'factor_eval_cache.json')
+            if os.path.exists(cache_path):
+                try:
+                    with open(cache_path, 'r', encoding='utf-8') as f:
+                        self.eval_cache = json.load(f)
+                except:
+                    self.eval_cache = {}
+    
+    def _save_cache(self):
+        """保存评估缓存"""
+        if self.cache_dir:
+            os.makedirs(self.cache_dir, exist_ok=True)
+            cache_path = os.path.join(self.cache_dir, 'factor_eval_cache.json')
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                json.dump(self.eval_cache, f, ensure_ascii=False, indent=2)
+    
+    def _get_cache_key(self, factor_name: str, factor_hash: str = None) -> str:
+        """生成缓存键"""
+        return f"{factor_name}_{factor_hash}" if factor_hash else factor_name
     
     def _check_future_leakage(self, factor_name: str) -> bool:
         """
@@ -127,8 +156,11 @@ class FactorEvaluator:
                     date_mask = factor_data.index.get_level_values(0) == date
                     factor_vals = factor_data[date_mask].reset_index(level=0, drop=True)
                     
-                    return_mask = returns.index.get_level_values(0) == date
-                    return_vals = returns[return_mask].reset_index(level=0, drop=True)
+                    if isinstance(returns.index, pd.MultiIndex):
+                        return_mask = returns.index.get_level_values(0) == date
+                        return_vals = returns[return_mask].reset_index(level=0, drop=True)
+                    else:
+                        return_vals = returns.copy()
                 else:
                     factor_vals = factor_data[factor_data.index == date]
                     return_vals = returns[returns.index == date]
@@ -577,7 +609,8 @@ class FactorEvaluator:
         returns: pd.Series,
         existing_factors: Optional[Dict[str, pd.Series]] = None,
         industry_data: Optional[pd.Series] = None,
-        market_cap_data: Optional[pd.Series] = None
+        market_cap_data: Optional[pd.Series] = None,
+        max_correlation_factors: int = 50
     ) -> List[Dict[str, Any]]:
         """
         批量评估候选因子
@@ -588,18 +621,42 @@ class FactorEvaluator:
             existing_factors: 已有因子
             industry_data: 行业数据
             market_cap_data: 市值数据
+            max_correlation_factors: 计算相关性的最大因子数
             
         Returns:
             评估结果列表
         """
         results = []
+        total_start = time.time()
+        total_cached = 0
+        total_evaluated = 0
         
-        for candidate in candidates:
+        for i, candidate in enumerate(candidates):
+            # Heartbeat 每10个因子输出一次
+            if i > 0 and i % 10 == 0:
+                elapsed = time.time() - total_start
+                print(f"  - Evaluated {i}/{len(candidates)}... success: {len(results)}")
+                if elapsed > 300:  # 超过5分钟
+                    print(f"  - Elapsed time: {elapsed/60:.1f} minutes")
+            
+            # 检查缓存
+            cache_key = self._get_cache_key(candidate.name)
+            if cache_key in self.eval_cache:
+                result = self.eval_cache[cache_key]
+                total_cached += 1
+                results.append(result)
+                candidate.set_evaluation_results(result)
+                continue
+            
+            # 评估因子
+            start_time = time.time()
             result = self.evaluate_single(
                 candidate.data, returns, industry_data, market_cap_data
             )
+            eval_elapsed = time.time() - start_time
             
-            if existing_factors:
+            # 计算相关性（只对前 max_correlation_factors 个因子）
+            if existing_factors and i < max_correlation_factors:
                 result['correlations'] = self.calculate_correlation_with_existing(
                     candidate.data, existing_factors
                 )
@@ -608,8 +665,22 @@ class FactorEvaluator:
             result['group_analysis'] = self.calculate_group_returns(candidate.data, returns)
             result['decay_curve'] = self.calculate_decay_curve(candidate.data, returns)
             result['in_out_sample'] = self.evaluate_in_sample_out_of_sample(candidate.data, returns)
+            result['eval_time_ms'] = eval_elapsed * 1000
+            
+            # 保存到缓存
+            self.eval_cache[cache_key] = result
+            total_evaluated += 1
             
             candidate.set_evaluation_results(result)
             results.append(result)
+        
+        # 保存缓存
+        self._save_cache()
+        
+        total_elapsed = time.time() - total_start
+        print(f"\n[FactorEvaluator] Total evaluated: {len(candidates)}")
+        print(f"[FactorEvaluator] From cache: {total_cached}")
+        print(f"[FactorEvaluator] Fresh evaluation: {total_evaluated}")
+        print(f"[FactorEvaluator] Total time: {total_elapsed:.2f}s")
         
         return results

@@ -1,6 +1,6 @@
 # Neural Feature Learning Report
 
-Generated: 2026-05-07 23:25:30
+Generated: 2026-05-09 19:32:29
 
 ## 1. Purpose
 
@@ -18,10 +18,10 @@ Generated: 2026-05-07 23:25:30
 ## 3. Data Overview
 
 - **Data Source**: AkShare
-- **Stock Count**: 20
-- **Time Range**: 20260107 ~ 20260507
-- **Raw Data Shape**: (1540, 11)
-- **Sequence Sample Shape**: X=(1120, 20, 5), metadata=(1120, 5)
+- **Stock Count**: 300
+- **Time Range**: 2024-05-20 00:00:00 ~ 2026-05-08 00:00:00
+- **Raw Data Shape**: (142830, 11)
+- **Sequence Sample Shape**: X=(136530, 20, 5), metadata=(136530, 5)
 - **Raw Features**: ['open', 'high', 'low', 'close', 'volume']
 
 ## 4. Model Overview
@@ -38,9 +38,9 @@ Generated: 2026-05-07 23:25:30
 
 ## 5. Time Split
 
-- **Train Period**: 2026-02-03 ~ 2026-03-27 (660 samples)
-- **Validation Period**: 2026-03-30 ~ 2026-04-14 (220 samples)
-- **Test Period**: 2026-04-15 ~ 2026-04-30 (240 samples)
+- **Train Period**: 2024-06-17 ~ 2025-07-29 (81738 samples)
+- **Validation Period**: 2025-07-30 ~ 2025-12-11 (27266 samples)
+- **Test Period**: 2025-12-12 ~ 2026-05-06 (27526 samples)
 
 ## 6. Leakage Check
 
@@ -53,22 +53,22 @@ Generated: 2026-05-07 23:25:30
 
 ## 7. Training Result
 
-- **Final Train Loss**: 263143339101.090912
-- **Final Val Loss**: 132992589824.000000
+- **Final Train Loss**: 0.025839
+- **Final Val Loss**: 0.029402
 - **Loss Curve**: Not saved (small model)
 
 ## 8. Neural Factor Evaluation
 
 | Factor | RankIC | ICIR | Coverage | Status |
 |--------|--------|------|----------|--------|
-| neural_factor_0 | 0.0507 | 0.2443 | 1.00 | evaluated |
-| neural_factor_7 | 0.0490 | 0.2368 | 1.00 | evaluated |
-| neural_factor_1 | 0.0479 | 0.2352 | 1.00 | evaluated |
-| neural_factor_2 | 0.0422 | 0.2054 | 1.00 | evaluated |
-| neural_factor_5 | -0.0435 | 0.2083 | 1.00 | evaluated |
-| neural_factor_6 | -0.0497 | 0.2401 | 1.00 | evaluated |
-| neural_factor_4 | -0.0499 | 0.2479 | 1.00 | evaluated |
-| neural_factor_3 | -0.0506 | 0.2497 | 1.00 | evaluated |
+| neural_factor_6 | 0.0455 | 0.2654 | 1.00 | evaluated |
+| neural_factor_3 | 0.0221 | 0.2082 | 1.00 | evaluated |
+| neural_factor_2 | 0.0132 | 0.0851 | 1.00 | evaluated |
+| neural_factor_7 | 0.0069 | 0.0454 | 1.00 | evaluated |
+| neural_factor_1 | -0.0013 | 0.0095 | 1.00 | evaluated |
+| neural_factor_4 | -0.0045 | 0.0292 | 1.00 | evaluated |
+| neural_factor_5 | -0.0066 | 0.0532 | 1.00 | evaluated |
+| neural_factor_0 | -0.0492 | 0.2782 | 1.00 | evaluated |
 
 ## 9. Comparison With Existing Formula Factors
 
@@ -78,15 +78,15 @@ Formula factors (from student_laptop_report.md):
 - momentum_simple_10: IC=0.0337, ICIR=0.1013
 
 Neural factors (this run):
-- neural_factor_0: IC=0.0507, ICIR=0.2443
-- neural_factor_7: IC=0.0490, ICIR=0.2368
-- neural_factor_1: IC=0.0479, ICIR=0.2352
-- neural_factor_2: IC=0.0422, ICIR=0.2054
-- neural_factor_5: IC=-0.0435, ICIR=0.2083
+- neural_factor_6: IC=0.0455, ICIR=0.2654
+- neural_factor_3: IC=0.0221, ICIR=0.2082
+- neural_factor_2: IC=0.0132, ICIR=0.0851
+- neural_factor_7: IC=0.0069, ICIR=0.0454
+- neural_factor_1: IC=-0.0013, ICIR=0.0095
 
 ## 10. Limitations
 
-- 样本只有 20 只股票
+- 样本只有 300 只股票
 - 时间只有约 6 个月
 - 停牌/涨跌停过滤仍未完善
 - Neural factor 不能直接实盘
@@ -100,4 +100,4 @@ Neural factors (this run):
 4. Can proceed to longer sample validation: NOT YET - need larger sample
 5. NOT ready for live trading
 
-Total time: 65.95s
+Total time: 192.29s

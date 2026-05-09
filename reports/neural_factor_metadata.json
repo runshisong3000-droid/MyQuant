@@ -1,49 +1,29 @@
 {
-  "model_type": "SequenceAutoEncoder",
-  "lookback_window": 20,
-  "raw_features": [
-    "open",
-    "high",
-    "low",
-    "close",
-    "volume"
+  "data_source": "research_medium",
+  "price_panel_path": "data/processed/profiles/research_medium\\prices.parquet",
+  "input_date_range": [
+    "2024-05-20 00:00:00",
+    "2026-05-08 00:00:00"
   ],
+  "output_date_range": [
+    "2024-06-17 00:00:00",
+    "2026-05-06 00:00:00"
+  ],
+  "input_stock_count": 300,
+  "output_stock_count": 300,
+  "sample_count": 136530,
+  "train_start": "2024-06-17 00:00:00",
+  "train_end": "2025-07-29 00:00:00",
+  "validation_start": "2025-07-30 00:00:00",
+  "validation_end": "2025-12-11 00:00:00",
+  "test_start": "2025-12-12 00:00:00",
+  "test_end": "2026-05-06 00:00:00",
+  "leakage_check_status": "OK",
+  "model_type": "SequenceAutoEncoder",
+  "encoder_type": "MLP",
+  "lookback_window": 20,
   "embedding_dim": 8,
-  "train_start_date": "2026-02-03 00:00:00",
-  "train_end_date": "2026-03-27 00:00:00",
-  "validation_start_date": "2026-03-30 00:00:00",
-  "validation_end_date": "2026-04-14 00:00:00",
-  "test_start_date": "2026-04-15 00:00:00",
-  "test_end_date": "2026-04-30 00:00:00",
-  "horizon": 1,
-  "training_mode": "self_supervised",
-  "device": "cpu",
-  "leakage_check_result": {
-    "feature_columns": {
-      "status": "OK",
-      "check": "feature_columns",
-      "issues": [],
-      "message": "All feature columns are safe"
-    },
-    "sequence_dates": {
-      "status": "OK",
-      "check": "sequence_dates",
-      "issues": [],
-      "message": "All sequences properly aligned"
-    },
-    "target_alignment": {
-      "status": "OK",
-      "check": "target_alignment",
-      "issues": [],
-      "message": "Target properly aligned after signal_date"
-    },
-    "scaler_fit_scope": {
-      "status": "OK",
-      "check": "scaler_fit_scope",
-      "issues": [],
-      "message": "Time periods properly separated"
-    },
-    "overall_status": "OK"
-  },
-  "generated_at": "2026-05-07T23:25:29.713623"
+  "hidden_dim": 32,
+  "epochs": 5,
+  "batch_size": 64
 }

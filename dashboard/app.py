@@ -135,7 +135,7 @@ def change_profile(new_profile):
         st.session_state.current_profile = new_profile
         st.session_state.data_loader.set_profile(new_profile)
         # 触发页面刷新以重新加载数据
-        st.experimental_rerun()
+        st.rerun()
 
 # ==================== Sidebar ====================
 

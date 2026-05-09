@@ -1,0 +1,33 @@
+{
+  "profile": "research_medium",
+  "dry_run": true,
+  "run_at": "2026-05-09T18:52:29.234856",
+  "checks": [
+    {
+      "check": "Profile exists",
+      "status": "OK"
+    },
+    {
+      "check": "Artifact missing: factor_summary.parquet",
+      "status": "INFO"
+    },
+    {
+      "check": "Artifact missing: neural_factors.parquet",
+      "status": "INFO"
+    },
+    {
+      "check": "Artifact missing: oos_feature_comparison.parquet",
+      "status": "INFO"
+    },
+    {
+      "check": "Artifact missing: trading_constraint_summary.parquet",
+      "status": "INFO"
+    },
+    {
+      "check": "Stage status missing",
+      "status": "INFO"
+    }
+  ],
+  "can_proceed": true,
+  "can_use_for_live_trading": false
+}

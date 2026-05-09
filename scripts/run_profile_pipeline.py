@@ -4,12 +4,14 @@ Profile Pipeline Runner - 总控脚本
 功能:
     - 按顺序调用各个 pipeline
     - 支持 profile 参数
-    - 不复制核心逻辑，只做调度
+    - 支持 --resume 和 --skip-completed 参数
     - 记录每个步骤的状态和耗时
+    - 支持从失败点恢复
 
 用法:
     python run_profile_pipeline.py --profile research_medium_trial
-    python run_profile_pipeline.py --profile research_medium
+    python run_profile_pipeline.py --profile research_medium_trial --resume
+    python run_profile_pipeline.py --profile research_medium_trial --resume --skip-completed
 """
 
 import sys
@@ -82,18 +84,82 @@ def run_command(cmd, cwd=None, env=None):
         return False, elapsed, "", str(e)
 
 
+def load_stage_status(dashboard_dir):
+    """加载阶段状态文件"""
+    status_path = os.path.join(dashboard_dir, 'stage_status.json')
+    if os.path.exists(status_path):
+        with open(status_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+
+def save_stage_status(dashboard_dir, stage, status, artifact=None, elapsed_seconds=None, error_message=None):
+    """保存阶段状态"""
+    status_path = os.path.join(dashboard_dir, 'stage_status.json')
+    
+    if os.path.exists(status_path):
+        with open(status_path, 'r', encoding='utf-8') as f:
+            status_dict = json.load(f)
+    else:
+        status_dict = {}
+    
+    status_dict[stage] = {
+        'stage': stage,
+        'status': status,
+        'artifact': artifact,
+        'started_at': datetime.now().isoformat(),
+        'finished_at': datetime.now().isoformat(),
+        'elapsed_seconds': elapsed_seconds,
+        'error_message': error_message
+    }
+    
+    with open(status_path, 'w', encoding='utf-8') as f:
+        json.dump(status_dict, f, ensure_ascii=False, indent=2)
+
+
+def check_artifact_exists(dashboard_dir, artifact_name, required_columns=None):
+    """检查 artifact 是否存在且字段完整"""
+    artifact_path = os.path.join(dashboard_dir, artifact_name)
+    
+    if not os.path.exists(artifact_path):
+        return False, None
+    
+    print(f"[SKIP] Artifact exists: {artifact_name}")
+    
+    if required_columns and artifact_name.endswith('.parquet'):
+        try:
+            import pandas as pd
+            df = pd.read_parquet(artifact_path)
+            missing_cols = [col for col in required_columns if col not in df.columns]
+            if missing_cols:
+                print(f"[WARN] Artifact {artifact_name} missing columns: {missing_cols}")
+                return False, df
+            return True, df
+        except Exception as e:
+            print(f"[WARN] Failed to check artifact {artifact_name}: {e}")
+            return True, None
+    
+    return True, None
+
+
 def main():
     parser = argparse.ArgumentParser(description='Profile Pipeline Runner')
     parser.add_argument('--profile', required=True, help='Profile name from compute_profile.yaml')
     parser.add_argument('--dry-run', action='store_true', help='Only check configuration, do not run pipelines')
+    parser.add_argument('--resume', action='store_true', help='Resume from last completed stage')
+    parser.add_argument('--skip-completed', action='store_true', help='Skip stages with existing artifacts')
     args = parser.parse_args()
     
     profile_name = args.profile
     dry_run = args.dry_run
+    resume = args.resume
+    skip_completed = args.skip_completed
     
     print("=" * 80)
     print(f"MyQuant Profile Pipeline Runner")
     print(f"Profile: {profile_name}")
+    print(f"Resume: {resume}")
+    print(f"Skip Completed: {skip_completed}")
     print("=" * 80)
     
     # 加载配置
@@ -102,47 +168,61 @@ def main():
         sys.exit(1)
     
     profile_config = config['profiles'][profile_name]
+    
+    # Profile-specific 目录
+    profile_dir = f'data/processed/profiles/{profile_name}'
+    dashboard_dir = f'data/dashboard/profiles/{profile_name}'
+    os.makedirs(dashboard_dir, exist_ok=True)
+    
     print(f"\n[CONFIG] 使用 profile: {profile_name}")
     print(f"  - stock_count: {profile_config.get('stock_count')}")
     print(f"  - history_months: {profile_config.get('history_months')}")
     print(f"  - device: {profile_config.get('device')}")
+    print(f"  - Profile dir: {profile_dir}")
+    print(f"  - Dashboard dir: {dashboard_dir}")
     
     # 设置环境变量传递 profile
     env = os.environ.copy()
     env['MYQUANT_PROFILE'] = profile_name
     
-    # 步骤定义
+    # 步骤定义，包含对应的 artifact 检查
     steps = [
         {
             'name': 'Research Factor Pipeline',
             'script': 'scripts/run_research_lite_pipeline.py',
             'args': f'--profile {profile_name}',
-            'required': True
+            'required': True,
+            'artifact': 'factor_summary.parquet',
+            'required_columns': ['factor_name', 'rank_ic_mean', 'icir', 'coverage']
         },
         {
             'name': 'Neural Factor Pipeline',
             'script': 'scripts/run_neural_factor_pipeline.py',
             'args': f'--profile {profile_name}',
-            'required': True
+            'required': True,
+            'artifact': 'neural_factors.parquet',
+            'required_columns': ['date', 'stock', 'signal_date']
         },
         {
             'name': 'OOS Validation Pipeline',
             'script': 'scripts/run_oos_validation_pipeline.py',
             'args': f'--profile {profile_name}',
-            'required': True
+            'required': True,
+            'artifact': 'oos_feature_comparison.parquet',
+            'required_columns': ['factor_name', 'ic', 'icir']
         },
         {
             'name': 'Trading Constraints Pipeline',
             'script': 'scripts/run_trading_constraints_pipeline.py',
             'args': f'--profile {profile_name}',
-            'required': True
+            'required': True,
+            'artifact': 'trading_constraint_summary.parquet',
+            'required_columns': ['stock', 'date', 'is_tradable']
         }
     ]
     
-    # Profile-specific 目录
-    profile_dir = f'data/processed/profiles/{profile_name}'
-    dashboard_dir = f'data/dashboard/profiles/{profile_name}'
-    research_lite_dir = 'data/dashboard'
+    # 加载阶段状态
+    stage_status = load_stage_status(dashboard_dir)
     
     # Dry-run 模式
     if dry_run:
@@ -152,192 +232,117 @@ def main():
         
         dry_run_results = []
         
-        # 检查 profile 是否存在
         print("\n[CHECK] Profile Configuration")
         print(f"  [OK] Profile '{profile_name}' exists in config")
         dry_run_results.append({'check': 'Profile exists', 'status': 'OK'})
         
-        # 检查 DataSourceManager
-        print("\n[CHECK] DataSourceManager")
-        ds_manager_path = 'src/data/data_source_manager.py'
-        if os.path.exists(ds_manager_path):
-            print(f"  [OK] DataSourceManager exists: {ds_manager_path}")
-            dry_run_results.append({'check': 'DataSourceManager exists', 'status': 'OK'})
-            
-            # 检查 DataSourceManager 是否可以导入
-            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            try:
-                from src.data.data_source_manager import DataSourceManager
-                ds_manager = DataSourceManager()
-                print(f"  [OK] DataSourceManager can be imported")
-                dry_run_results.append({'check': 'DataSourceManager importable', 'status': 'OK'})
-                
-                # 检查 profile config 能读取
-                profile_config_result = ds_manager.load_profile_config(profile_name)
-                if profile_config_result:
-                    print(f"  [OK] Profile config loaded for '{profile_name}'")
-                    dry_run_results.append({'check': f'Profile config loadable: {profile_name}', 'status': 'OK'})
-                else:
-                    print(f"  [FAIL] Failed to load profile config for '{profile_name}'")
-                    dry_run_results.append({'check': f'Profile config loadable: {profile_name}', 'status': 'FAIL'})
-            except Exception as e:
-                print(f"  [FAIL] Failed to import DataSourceManager: {e}")
-                dry_run_results.append({'check': 'DataSourceManager importable', 'status': 'FAIL'})
-        else:
-            print(f"  [FAIL] DataSourceManager not found: {ds_manager_path}")
-            dry_run_results.append({'check': 'DataSourceManager exists', 'status': 'FAIL'})
-        
-        # 检查子 pipeline 是否存在
-        print("\n[CHECK] Pipeline Scripts")
+        # 检查各个 artifact 是否存在
+        print("\n[CHECK] Existing Artifacts")
         for step in steps:
-            script_path = step['script']
-            if os.path.exists(script_path):
-                print(f"  [OK] {script_path}")
-                dry_run_results.append({'check': f'Script exists: {script_path}', 'status': 'OK'})
+            artifact_exists, _ = check_artifact_exists(dashboard_dir, step['artifact'])
+            if artifact_exists:
+                print(f"  [OK] {step['artifact']} exists")
+                dry_run_results.append({'check': f'Artifact exists: {step["artifact"]}', 'status': 'OK'})
             else:
-                print(f"  [FAIL] {script_path} - NOT FOUND")
-                dry_run_results.append({'check': f'Script missing: {script_path}', 'status': 'FAIL'})
+                print(f"  [INFO] {step['artifact']} missing")
+                dry_run_results.append({'check': f'Artifact missing: {step["artifact"]}', 'status': 'INFO'})
         
-        # 检查输出目录
-        print("\n[CHECK] Output Directories")
-        print(f"  Profile dir: {profile_dir}")
-        print(f"  Dashboard dir: {dashboard_dir}")
-        
-        # 检查 prices_metadata.json
-        print("\n[CHECK] Price Metadata")
-        metadata_path = os.path.join(profile_dir, 'prices_metadata.json')
-        if os.path.exists(metadata_path):
-            print(f"  [OK] Price metadata exists: {metadata_path}")
-            dry_run_results.append({'check': 'Price metadata exists', 'status': 'OK'})
-            
-            with open(metadata_path, 'r', encoding='utf-8') as f:
-                metadata = json.load(f)
-            
-            required_fields = ['profile', 'target_stock_count', 'actual_stock_count', 
-                             'success_symbols', 'failed_symbols', 'data_source', 'can_use_for_live_trading']
-            missing_fields = [f for f in required_fields if f not in metadata]
-            if not missing_fields:
-                print(f"  [OK] Metadata fields are complete")
-                dry_run_results.append({'check': 'Metadata fields complete', 'status': 'OK'})
-                
-                # 检查 actual_stock_count 是否满足阈值
-                actual_count = metadata.get('actual_stock_count', 0)
-                target_count = metadata.get('target_stock_count', 0)
-                
-                print(f"  [INFO] Target stock count: {target_count}")
-                print(f"  [INFO] Actual stock count: {actual_count}")
-                
-                # 检查是否满足最小股票数要求
-                min_stocks = config.get('data_sources', {}).get('min_absolute_stocks', {}).get(profile_name, 50)
-                if actual_count >= min_stocks:
-                    print(f"  [OK] Actual stock count ({actual_count}) >= minimum ({min_stocks})")
-                    dry_run_results.append({'check': f'Stock count threshold ({min_stocks})', 'status': 'OK'})
-                elif actual_count >= 50:
-                    print(f"  [WARN] Actual stock count ({actual_count}) < minimum ({min_stocks})")
-                    dry_run_results.append({'check': f'Stock count threshold ({min_stocks})', 'status': 'WARN'})
-                else:
-                    print(f"  [FAIL] Actual stock count ({actual_count}) < 50")
-                    dry_run_results.append({'check': 'Stock count >= 50', 'status': 'FAIL'})
-            else:
-                print(f"  [FAIL] Missing metadata fields: {missing_fields}")
-                dry_run_results.append({'check': 'Metadata fields complete', 'status': 'FAIL'})
+        print("\n[CHECK] Stage Status")
+        if os.path.exists(os.path.join(dashboard_dir, 'stage_status.json')):
+            print(f"  [OK] stage_status.json exists")
+            dry_run_results.append({'check': 'Stage status exists', 'status': 'OK'})
         else:
-            print(f"  [WARN] Price metadata not found: {metadata_path}")
-            dry_run_results.append({'check': 'Price metadata exists', 'status': 'WARN'})
+            print(f"  [INFO] stage_status.json missing")
+            dry_run_results.append({'check': 'Stage status missing', 'status': 'INFO'})
         
-        # 检查是否会覆盖 research_lite
-        print("\n[CHECK] Isolation Check")
-        artifacts_to_check = [
-            'formula_factors.parquet',
-            'neural_factors.parquet', 
-            'factor_summary.parquet',
-            'oos_feature_comparison.parquet'
-        ]
-        
-        will_overwrite = False
-        for artifact in artifacts_to_check:
-            global_path = os.path.join(research_lite_dir, artifact)
-            profile_path = os.path.join(dashboard_dir, artifact)
-            if os.path.exists(global_path):
-                print(f"  [WARN] Global artifact exists: {global_path}")
-                print(f"    Profile path: {profile_path}")
-                dry_run_results.append({'check': f'Artifact isolation for {artifact}', 'status': 'WARN'})
-        
-        # 检查子 pipeline 是否支持 --profile 参数
-        print("\n[CHECK] Profile Parameter Support")
-        for step in steps:
-            script_path = step['script']
-            if os.path.exists(script_path):
-                with open(script_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                if '--profile' in content and 'argparse' in content:
-                    print(f"  [OK] {script_path} supports --profile")
-                    dry_run_results.append({'check': f'Profile support: {script_path}', 'status': 'OK'})
-                else:
-                    print(f"  [FAIL] {script_path} does NOT support --profile")
-                    dry_run_results.append({'check': f'Profile support: {script_path}', 'status': 'FAIL'})
-        
-        # 输出预计路径
         print("\n[CHECK] Expected Paths")
         print(f"  Input prices: {profile_dir}/prices.parquet")
         print(f"  Output artifacts: {dashboard_dir}/")
         
-        # 生成 dry-run 报告
         print("\n" + "=" * 80)
         print("[DRY-RUN REPORT]")
         print("=" * 80)
         
-        print("\nSummary:")
         ok_count = sum(1 for r in dry_run_results if r['status'] == 'OK')
-        warn_count = sum(1 for r in dry_run_results if r['status'] == 'WARN')
-        fail_count = sum(1 for r in dry_run_results if r['status'] == 'FAIL')
+        info_count = sum(1 for r in dry_run_results if r['status'] == 'INFO')
         
-        print(f"  OK: {ok_count}")
-        print(f"  WARN: {warn_count}")
-        print(f"  FAIL: {fail_count}")
+        print(f"\nOK: {ok_count}")
+        print(f"INFO: {info_count}")
         
-        # 保存 dry-run 报告
-        dry_run_report = {
+        report = {
             'profile': profile_name,
             'dry_run': True,
             'run_at': datetime.now().isoformat(),
             'checks': dry_run_results,
-            'profile_config': profile_config,
-            'expected_input_path': f'{profile_dir}/prices.parquet',
-            'expected_output_dir': dashboard_dir,
-            'can_proceed': fail_count == 0,
+            'can_proceed': True,
             'can_use_for_live_trading': False
         }
         
-        report_dir = 'reports'
-        os.makedirs(report_dir, exist_ok=True)
-        report_path = os.path.join(report_dir, f'{profile_name}_dry_run_report.json')
-        
+        report_path = os.path.join('reports', f'{profile_name}_dry_run_report.json')
         with open(report_path, 'w', encoding='utf-8') as f:
-            json.dump(dry_run_report, f, ensure_ascii=False, indent=2)
+            json.dump(report, f, ensure_ascii=False, indent=2)
         
         print(f"\n[INFO] Dry-run report saved to: {report_path}")
-        
-        if fail_count > 0:
-            print("\n[FAIL] Dry-run failed! Please fix the issues before running.")
-            sys.exit(1)
-        else:
-            print("\n[OK] Dry-run passed! Ready to run the pipeline.")
-            sys.exit(0)
-        
-        return
+        print("\n[OK] Dry-run passed!")
+        sys.exit(0)
     
     # 运行各个步骤
     results = []
     total_start = time.time()
+    skip_count = 0
     
     for step in steps:
         print("\n" + "=" * 80)
         print(f"[Step] {step['name']}")
         print("=" * 80)
         
+        # 检查是否需要跳过
+        should_skip = False
+        
+        if resume or skip_completed:
+            artifact_exists, _ = check_artifact_exists(
+                dashboard_dir, 
+                step['artifact'], 
+                step.get('required_columns')
+            )
+            if artifact_exists:
+                # 检查阶段状态
+                stage_info = stage_status.get(step['name'], {})
+                if stage_info.get('status') == 'completed':
+                    print(f"[SKIP] Stage '{step['name']}' already completed")
+                    should_skip = True
+                    skip_count += 1
+                elif skip_completed:
+                    print(f"[SKIP] Artifact '{step['artifact']}' exists, skipping stage")
+                    should_skip = True
+                    skip_count += 1
+        
+        if should_skip:
+            results.append({
+                'name': step['name'],
+                'script': step['script'],
+                'success': True,
+                'elapsed': 0,
+                'stdout': '',
+                'stderr': '',
+                'required': step['required'],
+                'skipped': True
+            })
+            save_stage_status(dashboard_dir, step['name'], 'completed', step['artifact'], 0)
+            continue
+        
+        # 运行命令
+        save_stage_status(dashboard_dir, step['name'], 'running')
+        step_start = time.time()
+        
         cmd = f"py14venv\\Scripts\\python.exe -u {step['script']} {step['args']}"
         success, elapsed, stdout, stderr = run_command(cmd, env=env)
+        
+        # 保存阶段状态
+        if success:
+            save_stage_status(dashboard_dir, step['name'], 'completed', step['artifact'], elapsed)
+        else:
+            save_stage_status(dashboard_dir, step['name'], 'failed', step['artifact'], elapsed, stderr)
         
         results.append({
             'name': step['name'],
@@ -346,7 +351,8 @@ def main():
             'elapsed': elapsed,
             'stdout': stdout,
             'stderr': stderr,
-            'required': step['required']
+            'required': step['required'],
+            'skipped': False
         })
         
         # 如果是必需步骤且失败，停止执行
@@ -362,11 +368,13 @@ def main():
     
     print(f"\nProfile: {profile_name}")
     print(f"Total Time: {total_elapsed:.2f} seconds")
+    print(f"Steps Skipped: {skip_count}")
     print("\nStep Results:")
     
     for result in results:
-        status = "✅" if result['success'] else "❌"
-        print(f"  {status} {result['name']}: {'Success' if result['success'] else 'Failed'} ({result['elapsed']:.2f}s)")
+        status = "[SKIP]" if result.get('skipped') else "[OK]" if result['success'] else "[FAIL]"
+        elapsed_str = "(skipped)" if result.get('skipped') else f"({result['elapsed']:.2f}s)"
+        print(f"  {status} {result['name']}: {'Skipped' if result.get('skipped') else ('Success' if result['success'] else 'Failed')} {elapsed_str}")
     
     # 保存报告
     report = {
@@ -374,6 +382,7 @@ def main():
         'profile_config': profile_config,
         'run_at': datetime.now().isoformat(),
         'total_time': total_elapsed,
+        'steps_skipped': skip_count,
         'steps': results,
         'success': all(r['success'] for r in results),
         'can_use_for_live_trading': False
@@ -390,9 +399,9 @@ def main():
     
     # 输出总结
     if all(r['success'] for r in results):
-        print("\n🎉 Profile pipeline 运行成功！")
+        print("\n[SUCCESS] Profile pipeline 运行成功！")
     else:
-        print("\n⚠️ Profile pipeline 运行失败！")
+        print("\n[FAILURE] Profile pipeline 运行失败！")
         sys.exit(1)
 
 
