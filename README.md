@@ -99,7 +99,7 @@ python scripts/test_logging_system.py
 
 ```
 MyQuant/
-├── config/                    # Configuration files
+├── config/                   # Configuration files
 │   ├── data.yaml             # Data source configuration
 │   ├── strategy.yaml         # Strategy parameters
 │   └── backtest.yaml         # Backtest engine settings
